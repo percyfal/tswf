@@ -107,15 +107,13 @@ definitions:
   rules.config:
     type: object
     patternProperties:
-      ^(tsinfer_tsinfer)$:
+      ^(bcftools_index)$:
+        description: >-
+          bcftools rule resources
+      ^(tsinfer_infer|tsinfer_date|tsinfer_gnn|tsinfer_sample_gnn|tsinfer_gnn_plot|tsinfer_gnn_plot_R)$:
         description: >-
           tsinfer rule resources
         $ref: "#/definitions/rule.config"
-      ^(relate_relate)$:
-        description: >-
-          relate rule resources
-        $ref: "#/definitions/rule.config"
-
 
         
   ##############################
@@ -140,7 +138,7 @@ definitions:
       fmt:
         type: string
         default: "{chrom}"
-        pattern: ".*{chrom}.*"
+        pattern: "^.+_{chrom}_.+$"
         description: >-
           Python miniformat string describing the prefix of the input
           and output files. Must contain the {chrom} wildcard.
@@ -155,6 +153,9 @@ definitions:
             items:
               type: string
       rules:
+        default: {}
         $ref: "#/definitions/rules.config"
+    required:
+      - dataset
     additionalProperties: false
         

@@ -1,4 +1,5 @@
 include: "rules/common.smk"
+include: "rules/tsinfer.smk"
 
 report: "report/workflow.rst"
 
@@ -8,3 +9,6 @@ singularity: "docker://continuumio/miniconda3"
 
 rule all:
     input: unpack(all)
+
+rule all_tsinfer:
+    input: all_tsinfer

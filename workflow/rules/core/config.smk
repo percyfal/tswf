@@ -270,12 +270,14 @@ class Config(PropertyDict):
     def get_analysis(self, name):
         return self[name]
 
-    def analyses(self, label):
-        return [self[k] for k in self.keys() if k.startswith(label)]
+    def analyses(self, label=None):
+        if label is not None:
+            return [self[k] for k in self.keys() if k.startswith(label)]
+        return [self[k] for k in self.keys() if re.match(r"^(tsinfer|relate)/", k)]
 
     @property
     def analysisnames(self):
-        return [x.name for x in self.analyses]
+        return [x.name for x in self.analyses()]
 
     @property
     def genome(self):
