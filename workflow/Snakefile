@@ -1,0 +1,10 @@
+include: "rules/common.smk"
+
+report: "report/workflow.rst"
+
+# Allow users to fix the underlying OS via singularity.
+singularity: "docker://continuumio/miniconda3"
+
+
+rule all:
+    input: unpack(all)

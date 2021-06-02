@@ -1,0 +1,37 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+
+description: snakemake configuration file
+
+type: object
+
+properties:
+  ref:
+    description: reference sequence
+    type: string
+    pattern: .+\.(fa|fasta)$
+  samples:
+    description: >-
+      sample definition file
+    type: string
+    pattern: .+\.(tsv|csv)$
+  chromosomes:
+    $ref: "definitions.schema.yaml#/definitions/chromosomes"
+  resources.default:
+    default: {}
+    $ref: "definitions.schema.yaml#/definitions/resources.default"
+  rules:
+    default: {}
+    $ref: "definitions.schema.yaml#/definitions/rules.config"
+
+  
+# entries that have to be in the config file for successful validation
+required:
+  - samples
+  - chromosomes
+  - ref
+
+# Analysis section
+patternProperties:
+  '(relate|tsinfer)/[0-9_a-zA-Z]+':
+    type: object
+    $ref: "definitions.schema.yaml#/definitions/analysis"

@@ -1,0 +1,160 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+
+description: Various definitions
+
+type: object
+
+definitions:
+  ##############################
+  # Atomic properties for reuse in object properties
+  ##############################
+
+  options:
+    description: program options represented as string, array or dictionary
+    type: [string, array, object]
+    items:
+      type: string
+    uniqueItems: true
+  envmodules:
+    description: environment module list
+    type: array
+    items:
+      type: string
+    uniqueItems: true
+  runtime:
+    description: rule runtime in minutes
+    type: integer
+  threads:
+    description: number of threads
+    type: integer
+  mem_mb:
+    description: Resource that defines assigned memory in megabases
+    type: integer
+  java_options:
+    description: options to pass to java interpreter
+    type: string
+  java_tmpdir:
+    description: java temporary directory
+    type: string
+  chromosomes:
+    description: >-
+      List of chromosomes to analyse. Can be set in analysis section.
+    type: array
+    items:
+      type: string
+
+  ##############################
+  # Default resources
+  ##############################
+
+  resources.default:
+    title: Default resources.
+    description: >
+      Default resources. Any rule that does not specify resources will
+      fall back on these default values.
+    type: object
+    default: {}
+    properties:
+      threads:
+        $ref: "#/definitions/threads"
+        default: 1
+      mem_mb:
+        $ref: "#/definitions/mem_mb"
+        default: 8192
+      runtime:
+        $ref: "#/definitions/runtime"
+        default: 120
+      options:
+        $ref: "#/definitions/options"
+        default: ""
+      envmodules:
+        $ref: "#/definitions/envmodules"
+        default: []
+      java_options:
+        $ref: "#/definitions/java_options"
+        default: ""
+      java_tmpdir:
+        $ref: "#/definitions/java_tmpdir"
+        default: "/tmp"
+    additionalProperties: false
+
+  ##############################
+  # Rule definitions
+  ##############################
+
+  rule.config:
+    title: Rule configuration
+    description: generic configuration for rules
+    type: object
+    properties:
+      options:
+        $ref: "#/definitions/options"
+      envmodules:
+        $ref: "#/definitions/envmodules"
+      threads:
+        $ref: "#/definitions/threads"
+      mem_mb:
+        $ref: "#/definitions/mem_mb"
+      runtime:
+        $ref: "#/definitions/runtime"
+
+  ##############################
+  # Resources configurations
+  #
+  # NB: resources hold both resource configs as well as rule configs
+  # (e.g. options)
+  ##############################
+  rules.config:
+    type: object
+    patternProperties:
+      ^(tsinfer_tsinfer)$:
+        description: >-
+          tsinfer rule resources
+        $ref: "#/definitions/rule.config"
+      ^(relate_relate)$:
+        description: >-
+          relate rule resources
+        $ref: "#/definitions/rule.config"
+
+
+        
+  ##############################
+  # Analysis
+  ##############################
+  analysis:
+    description: >-
+      Analysis configuration schema
+    type: object
+    properties:
+      chromosomes:
+        $ref: "#/definitions/chromosomes"
+      dataset:
+        description: >-
+          Variant dataset directory expressed as relative or absolute
+          path. If this is a relative path by default workflow will
+          look in 1. data/raw/variants for a folder with this name
+          followed by 2. relative to the working directory.
+        type: string
+      description:
+        type: string
+      fmt:
+        type: string
+        default: "{chrom}"
+        pattern: ".*{chrom}.*"
+        description: >-
+          Python miniformat string describing the prefix of the input
+          and output files. Must contain the {chrom} wildcard.
+      subset:
+        type: object
+        patternProperties:
+          '[a-zA-Z0-9_]+':
+            description: >-
+              Keys in sample data frame for selecting subsets of
+              samples. All samples are included if left empty.
+            type: array
+            items:
+              type: string
+      rules:
+        $ref: "#/definitions/rules.config"
+    additionalProperties: false
+        
