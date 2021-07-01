@@ -24,7 +24,7 @@ rule tsinfer_infer:
     params:
         length = lambda wildcards: refdict[wildcards.chrom],
         samples = lambda wildcards: cfg.get_analysis(wildcards.analysis).samples.data
-    threads: lambda wildcards: cfg.ruleconf("map_bwa_index", analysis=wildcards.analysis).threads
+    threads: lambda wildcards: cfg.ruleconf("tsinfer_infer", analysis=wildcards.analysis).threads
     conda: "../envs/tsinfer.yaml"
     envmodules: *cfg.ruleconf("tsinfer_infer").params("envmodules")
     log: "logs/{interim}/{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.log"
