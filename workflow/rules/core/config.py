@@ -8,7 +8,10 @@ from snakemake.io import _load_configfile
 
 
 WORKFLOW_DIR = workflow.current_basedir
-SCHEMA_DIR = os.path.realpath(os.path.join(WORKFLOW_DIR, os.pardir, os.pardir, "schemas"))
+SCHEMA_DIR = os.path.realpath(
+    os.path.join(WORKFLOW_DIR, os.pardir, os.pardir, "schemas")
+)
+
 
 def wildcards_or(items, empty=False):
     items = list(set(items))
@@ -33,9 +36,9 @@ def cd(path, logger):
         os.chdir(CWD)
 
 
-
 class PropertyDict(OrderedDict):
     """Simple class that allows for property access"""
+
     def __init__(self, data=dict()):
         super().__init__(data)
         for k, v in data.items():
@@ -80,6 +83,10 @@ class Schema(PropertyDict):
 sample_schema = Schema(os.path.join(SCHEMA_DIR, "samples.schema.yaml"))
 population_schema = Schema(os.path.join(SCHEMA_DIR, "populations.schema.yaml"))
 
+
+##############################
+## Data related classes
+##############################
 class Data:
     _index = None
     _schemafile = None
@@ -87,14 +94,15 @@ class Data:
     def __init__(self, *args):
         if len(args) == 1:
             args = args[0]
-            if isinstance(args, SampleData):
+            if isinstance(args, Data):
                 self._schemafile = args._schemafile
                 self._data = args.data
             elif isinstance(args, str):
                 self._read_tsv(args)
         elif len(args) > 1:
-            assert all(isinstance(x, SampleData) for x in args), \
-                logger.error("all instances must be SampleData")
+            assert all(isinstance(x, Data) for x in args), logger.error(
+                "all instances must be Data"
+            )
             self._schemafile = args[0]._schemafile
             self._data = pd.concat(x.data for x in args)
         else:
@@ -152,6 +160,7 @@ class Data:
     def merge(self, other, **kw):
         self._data = pd.merge(self.data, other.data, **kw)
 
+
 class SampleData(Data):
     _index = ["SM"]
     _schemafile = sample_schema.schemafile
@@ -190,7 +199,6 @@ class PopulationData(Data):
 # Config related classes
 ##############################
 class Analysis(PropertyDict):
-
     def __init__(self, name, default, **kw):
         default.update(**kw)
         super().__init__(default)
@@ -227,12 +235,10 @@ class ConfigRule(PropertyDict):
     def name(self):
         return self._name
 
-    @property
-    def xthreads(self):
-        return self.attempt * self["threads"]
-
     def resources(self, resource):
-        assert isinstance(self[resource], int), f"{self}: resource '{resource}' is not an int"
+        assert isinstance(
+            self[resource], int
+        ), f"{self}: resource '{resource}' is not an int"
         return self.attempt * self[resource]
 
     def params(self, attr):
@@ -240,7 +246,6 @@ class ConfigRule(PropertyDict):
 
 
 class Config(PropertyDict):
-
     def __init__(self, conf, samples):
         super().__init__(conf)
         self["samples"] = samples
@@ -251,15 +256,14 @@ class Config(PropertyDict):
             if not re.match(r"^(tsinfer|relate)/", k):
                 continue
             default = {
-                'chromosomes': self.chromosomes,
-                'samples': self.samples,
+                "chromosomes": self.chromosomes,
+                "samples": self.samples,
             }
             self[k] = Analysis(k, default, **self[k])
 
-
     def ruleconf(self, rulename, attempt=None, analysis=None):
         """Retrieve rule configuration"""
-        ruleobj = ConfigRule(rulename, attempt, self['resources.default'])
+        ruleobj = ConfigRule(rulename, attempt, self["resources.default"])
         if rulename in self.rules:
             ruleobj.update(**self.rules[rulename])
         if analysis is not None:
