@@ -437,12 +437,15 @@ class MatrixFigure(Figure):
         if 'x_range' not in self._kw.keys():
             self._kw['x_range'] = FactorRange(factors=row_factors)
         if 'y_range' not in self._kw.keys():
-           self._kw['y_range'] = FactorRange(factors=list(reversed(col_factors)))
+            self._kw['y_range'] = FactorRange(factors=list(reversed(col_factors)))
         self._fig = plotting.figure(**self._kw)
 
         # Apparently reordering is necessary? I thought it would
         # suffice to set the factors on the x/y ranges
-        df = pd.DataFrame(data.reorder().data.stack(), columns=['z']).reset_index()
+        datastack = data.reorder().data.stack()
+        # Recall: want to reflect the matrix so y/x shift
+        datastack.index.names = ['y', 'x']
+        df = pd.DataFrame(datastack, columns=['z']).reset_index()
         source = ColumnDataSource(df)
 
         # Setup color mapper
@@ -453,7 +456,7 @@ class MatrixFigure(Figure):
         color_mapper = LinearColorMapper(palette=palette, low=low, high=high)
 
         # Make heatmap 
-        self._fig.rect(x=data.colname, y=data.rowname,
+        self._fig.rect(x='x', y='y',
                        width=1, height=1,
                        line_color='black', line_alpha=0.2, alpha=0.8,
                        source=source, fill_color=transform('z', color_mapper),
@@ -473,8 +476,8 @@ class MatrixFigure(Figure):
         # Setup hover tooltips
         hover = HoverTool()
         hover.tooltips = [
-            ("Row", f"@{data.rowname}"),
-            ("Column", f"@{data.colname}"),
+            ("Row", "@y"),
+            ("Column", "@x"),
             ("Value", "@z")
         ]
         self._fig.add_tools(hover)
@@ -495,6 +498,15 @@ class MatrixFigure(Figure):
                 x='x', y='y', fill_color='color',
                 line_color=None, line_alpha=0.2, alpha=0.8,
                 source=row_colors, width=.6, height=1)
+        # Add col colors; transpose may be needed
+        if col_colors is not None:
+            col_colors = col_colors.stack()
+            col_colors = col_colors.reset_index()
+            col_colors.columns = ["y", "x", "color"]
+            self._fig.rect(
+                x='x', y='y', fill_color='color',
+                line_color=None, line_alpha=0.2, alpha=0.8,
+                source=col_colors, width=.6, height=1)
 
 
         # Configure axes
@@ -506,10 +518,46 @@ class MatrixFigure(Figure):
         self._fig.grid.grid_line_color = None
         self._fig.outline_line_color = None
         return self._fig
+
+
+    def vbar_stack(self, row_colors=None, ):
+        data = self._data.copy().data
+        # Factor is the index
+        levels = list(data.index.names)
+        factors = list(data.index)
+        groups = data.columns
+        data.reset_index(inplace=True)
+        data["x"] = factors
+        source = ColumnDataSource(data)
+
+        if 'x_range' not in self._kw.keys():
+            self._kw['x_range'] = FactorRange(*factors)
+        self._fig = plotting.figure(**self._kw)
+        self._fig.vbar_stack(groups, source=source, x='x', color=_get_palette(n=len(groups)),
+                             legend_label=sorted(groups), width=1,
+                             line_color='black', line_alpha=0.2, line_width=0.5)
+        self._fig.add_layout(self._fig.legend[0], 'right')
+
+        hover = HoverTool()
+        hover.tooltips = list(map(lambda x: (x[0], f"@{x[1]}"), zip(levels, levels)))
+        hover.tooltips.extend(list(map(lambda x: (x[0], f"@{x[1]}{{%0.1f}}"), zip(groups, groups))))
+        self._fig.add_tools(hover)
+
+        self._fig.axis.major_tick_line_color = None
+        self._fig.axis.minor_tick_line_color = None
+        self._fig.xaxis.group_label_orientation = 1.0
+        self._fig.xaxis.subgroup_label_orientation = 1.0
+        self._fig.xaxis.major_label_orientation = 1.0
+        self._fig.xaxis.major_label_text_font_size = '0pt'
+        self._fig.axis.axis_line_color = None
+        self._fig.grid.grid_line_color = None
+        self._fig.outline_line_color = 'black'
+
+        return self._fig
         
     
 class Matrix:
-    def __init__(self, data, *args, **kw):
+    def __init__(self, data=None, *args, **kw):
         self.data = data
         self._row_linkage = None
         self._col_linkage = None
@@ -659,8 +707,8 @@ class Matrix:
             zscore = self.data.copy()
         else:
             zscore = self.data.copy().T
-        for col in list(zscore):
-            zscore[col] = scipy.stats.zscore(zscore[col])
+        for column in list(zscore):
+            zscore[column] = scipy.stats.zscore(zscore[column])
         if axis == 1:
             self.data = zscore
         else:
@@ -691,23 +739,28 @@ class Matrix:
         else:
             self.col_linkage = linkage
         return self
-            
 
-            
-
-class GNNMatrix:
-    pass
-
-class TSMatrix(Matrix):
+    
+class TSData:
     def __init__(self, ts, *args, **kw):
-        super().__init__(*args, **kw)
         self._ts = ts
+        self._data = None
 
+
+    @property
+    def data(self):
+        return self._data
+
+    @data.setter
+    def data(self, data):
+        if not isinstance(data, Matrix):
+            print("only Matrix class allowed")
+            raise Exception
+        self._data = data
 
     @property
     def ts(self):
         return self._ts
-
 
     def _group_samples(self, by="population"):
         sample_group_set_map = collections.defaultdict(list)
@@ -730,7 +783,7 @@ class TSMatrix(Matrix):
                           columns=groups, index=groups)
         df.index.name = by
         df.columns.name = by
-        self.data = df
+        self.data = Matrix(df)
         return self
 
     
@@ -738,7 +791,5 @@ class TSMatrix(Matrix):
 def figure(data, **kwargs):
     if isinstance(data, Matrix):
         return MatrixFigure(data, **kwargs)
-    # elif figtype == "ts":
-    #     return TSFigure(data, **kwargs)
 
 
