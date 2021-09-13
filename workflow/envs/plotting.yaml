@@ -1,0 +1,6 @@
+channels:
+  - conda-forge
+dependencies:
+  - bokeh=2.3.3
+  - tskit
+  - snakemake

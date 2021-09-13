@@ -85,8 +85,6 @@ rule tsinfer_gnn:
     script:
         "../scripts/tsinfer-gnn.py"
 
-
-
 rule tsinfer_eda:
     """Make EDA document based on bokeh plots"""
     output:
@@ -100,6 +98,8 @@ rule tsinfer_eda:
                                        chrom=cfg.get_analysis(wildcards.analysis).chromosomes)
     params:
         fmt = lambda wildcards: cfg.get_analysis(wildcards.analysis).fmt
+    conda:
+        "../envs/plotting.yaml"
     log:
         "logs/{results}/{analysis}/{dataset}/eda.log",
     script:
