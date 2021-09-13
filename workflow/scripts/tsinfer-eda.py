@@ -148,7 +148,7 @@ hm = {}
 gnnprop = {}
 fst = {}
 fst_data = {}
-for k in reversed(list(gnn.keys())):
+for k in list(gnn.keys()):
     print("Analysing ", k)
     v = gnn[k]
     hm[k] = _heatmap(k, v)

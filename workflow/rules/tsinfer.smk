@@ -102,6 +102,7 @@ rule tsinfer_eda:
         "../envs/plotting.yaml"
     log:
         "logs/{results}/{analysis}/{dataset}/eda.log",
+    threads: 1
     script:
         "../scripts/tsinfer-eda.py"
 
