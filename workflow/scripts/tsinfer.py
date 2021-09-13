@@ -4,8 +4,11 @@ import re
 import os
 import sys
 import math
+try:
+    import tsinfer
+except ModuleNotFoundError as e:
+    raise(ModuleNotFoundError("No module named 'tsinfer'"))
 import cyvcf2
-import tsinfer
 import json as json
 import pandas as pd
 from tqdm import tqdm
@@ -18,6 +21,7 @@ chromlength = snakemake.params.length
 tsout = snakemake.output.trees
 
 print(f"...read {df_meta.shape[0]} entries\n")
+
 
 def add_diploid_sites(vcf, samples, df_filt):
     """
@@ -63,18 +67,30 @@ def add_diploid_sites(vcf, samples, df_filt):
 
 def add_populations(vcf, samples):
     """Add numeric population id for each sample to samples"""
-    #subset the metadata frame by the samples in the vcf that was loaded. This returns in order, the vcf samples
-    vcf_samples = pd.DataFrame({'SM': vcf.samples})
+    # subset the metadata frame by the samples in the vcf that was loaded. This returns in order, the vcf samples
+    vcf_samples = pd.DataFrame({"SM": vcf.samples})
     # TODO: Check that samples in vcf_samples actually exist in df_meta
-    df_filt = vcf_samples.merge(df_meta, left_on='SM', right_on='SM', right_index=True).set_index(["SM"], drop=True).loc[:, :]
+    df_filt = (
+        vcf_samples.merge(df_meta, left_on="SM", right_on="SM", right_index=True)
+        .set_index(["SM"], drop=True)
+        .loc[:, :]
+    )
     sample_pops = list(df_filt.population)
     pop_lookup = {}
     for pop in set(sample_pops):
-        md = df_filt[df_filt.population == pop].drop(["name"], axis=1).drop_duplicates(ignore_index=True)
-        md = {k:v[0] for k, v in md.iteritems()}
+        ## Drop name column as it otherwise would give a redundant
+        ## population metadata frame? This requires that name be
+        ## present and be one-to-one mapping with SM. No such check is currently done.
+        md = (
+            df_filt[df_filt.population == pop]
+            .drop(["name"], axis=1)
+            .drop_duplicates(ignore_index=True)
+        )
+        md = {k: v[0] for k, v in md.iteritems()}
         # tsinfer.SampleData.add_population returns ID of newly added population
         pop_lookup[pop] = samples.add_population(metadata=md)
     return [pop_lookup[pop] for pop in sample_pops], df_filt
+
 
 def add_diploid_individuals(vcf, samples, populations):
     """Add sample name and population id to samples"""
@@ -91,14 +107,13 @@ def init_vcf(fn, samplenames):
         raise
     return vcf
 
+
 # Init vcf
 vcf = init_vcf(inputvcf, df_meta.index.to_list())
 samples = vcf.samples
 
 samples_path = re.sub(".trees$", ".samples", tsout)
-with tsinfer.SampleData(
-        path=samples_path,
-        sequence_length=chromlength) as samples:
+with tsinfer.SampleData(path=samples_path, sequence_length=chromlength) as samples:
     populations, df_filt = add_populations(vcf, samples)
     add_diploid_individuals(vcf, samples, populations)
     add_diploid_sites(vcf, samples, df_filt)
@@ -111,7 +126,7 @@ print(
 )
 
 
-ts = tsinfer.infer(samples, progress_monitor = True, num_threads=snakemake.threads)
+ts = tsinfer.infer(samples, progress_monitor=True, num_threads=snakemake.threads)
 
 print(
     "Inferred tree sequence `{}`: {} trees over {} Mb".format(

@@ -14,13 +14,13 @@ def cluster_gnn_map(X, by="population"):
 
 
     '''
-    # dfg = X.groupby(by).mean()
     # Zscore normalise
     for col in list(X):
         X[col] = scipy.stats.zscore(X[col])
 
-    row_linkage = scipy.cluster.hierarchy.linkage(X, method="average")
+    row_linkage = scipy.cluster.hierarchy.linkage(X, method="average", optimal_ordering=True)
     order = scipy.cluster.hierarchy.leaves_list(row_linkage)
     x_pop = X.index.values[order]
+    X = X.reindex(x_pop)
 
-    return X[x_pop], row_linkage
+    return X, row_linkage

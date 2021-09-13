@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import contextlib
+import subprocess as sp
 from collections import OrderedDict
 from snakemake.utils import logger, validate
 from snakemake.io import _load_configfile
@@ -20,6 +21,20 @@ def wildcards_or(items, empty=False):
     return f'({"|".join(items)})'
 
 
+def x_runtime(wildcards, attempt):
+    return attempt * workflow.default_resources.parsed.get("runtime", 100)
+
+
+def x_mem_mb(wildcards, attempt):
+    default = workflow.default_resources.defaults["mem_mb"]
+    return attempt * workflow.default_resources.parsed.get("mem_mb", default)
+
+
+def xx_mem_mb(wildcards, attempt):
+    default = workflow.default_resources.defaults["mem_mb"]
+    return (2 ** attempt) * workflow.default_resources.parsed.get("mem_mb", default)
+
+
 # context manager for cd
 @contextlib.contextmanager
 def cd(path, logger):
@@ -34,6 +49,26 @@ def cd(path, logger):
     finally:
         logger.info("Changing directory back to {}".format(CWD))
         os.chdir(CWD)
+
+
+def add_gitinfo(config):
+    config["__workflow_basedir__"] = workflow.basedir
+    config["__workflow_workdir__"] = os.getcwd()
+    config["__worfklow_commit__"] = None
+    config["__workflow_commit_link__"] = None
+
+    try:
+        with cd(workflow.basedir, logger):
+            commit = sp.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
+            commit_short = sp.check_output(["git", "rev-parse", "--short", "HEAD"]).decode().strip()
+            rc = sp.run(["git", "diff", "--quiet"])
+            dirty = "-dirty" if rc.returncode == 1 else ""
+            config["__workflow_commit__"] = commit_short + dirty
+            config["__workflow_commit_link__"] = f"https://github.com/NBISweden/manticore-smk/commit/{commit}"
+    except Exception as e:
+        print(e)
+        raise
+
 
 
 class PropertyDict(OrderedDict):

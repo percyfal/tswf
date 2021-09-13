@@ -46,7 +46,7 @@ definitions:
   ##############################
   # Default resources
   ##############################
-
+  # FIXME: only options, envmodules, java_options should be kept
   resources.default:
     title: Default resources.
     description: >
@@ -81,7 +81,7 @@ definitions:
   ##############################
   # Rule definitions
   ##############################
-
+  # FIXME: only options, envmodules, and possibly java_options
   rule.config:
     title: Rule configuration
     description: generic configuration for rules

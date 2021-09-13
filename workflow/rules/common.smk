@@ -34,6 +34,8 @@ populations = PopulationData(config["populations"])
 samples = SampleData(config["samples"])
 samples.merge(populations, left_on="population", right_index=True)
 
+# Add git information
+add_gitinfo(config)
 # Wrap config dictionary
 cfg = Config(config, samples)
 
@@ -63,7 +65,7 @@ except Exception as e:
 ##############################
 wildcard_constraints:
     analysis=wildcards_or(cfg.analysisnames),
-    chrom=wildcards_or(cfg.chromosomes),
+    chrom=wildcards_or(cfg.chromosomes ),
     dot="(.|)",
     interim=str(__INTERIM__),
     population=wildcards_or(cfg.samples.populations),

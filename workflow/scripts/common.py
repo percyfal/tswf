@@ -70,7 +70,7 @@ def local_gnn(ts, focal, reference_sets):
     return (A, lefts, rights)
 
 
-def group_samples_by_populations(ts):
+def group_samples_ts(ts, by="population"):
     """Group samples by tree sequence metadata 'population' property
 
     NB: we could want to do grouping by some other property.
@@ -83,9 +83,32 @@ def group_samples_by_populations(ts):
     sample_group_set_map = collections.defaultdict(list)
     for population in ts.populations():
         md = json.loads(population.metadata.decode())
-        species = md["population"]
-        sample_group_set_map[species].extend(list(ts.samples(
+        key = md[by]
+        sample_group_set_map[key].extend(list(ts.samples(
             population=population.id)))
+    groups = list(sample_group_set_map.keys())
+    sample_group_sets = [sample_group_set_map[k] for k in groups]
+    return groups, sample_group_sets
+
+
+def get_samples(sample_data, population=None):
+    if population is None:
+        pop_index = np.array(range(len(sample_data.individuals_population)))
+    else:
+        pop_index = np.where(np.array(sample_data.individuals_population) == population)[0]
+    individuals = np.array(list(sample_data.individuals()))[pop_index]
+    samples = list()
+    for ind in individuals:
+        samples.extend(ind.samples)
+    return samples
+
+
+def group_samples(sample_data, by="population"):
+    sample_group_set_map = collections.defaultdict(list)
+    for pop in sample_data.populations():
+        key = pop.metadata[by]
+        sample_group_set_map[key].extend(
+            get_samples(sample_data, pop.id))
     groups = list(sample_group_set_map.keys())
     sample_group_sets = [sample_group_set_map[k] for k in groups]
     return groups, sample_group_sets
@@ -121,7 +144,7 @@ def make_colour_map(groups):
     return colours
 
 
-def plot_sample_gnn(df_all, groups, outfile, sample):
+def plot_sample_gnn(df_all, groups, outfile, sample, title=None):
     gs = matplotlib.gridspec.GridSpec(2, 2, height_ratios=[1, 1], hspace=0.6, width_ratios=[5, 1])
     fig = plt.figure(figsize=(17, 4))
     _, ax_main = plt.subplots()
@@ -156,25 +179,31 @@ def plot_sample_gnn(df_all, groups, outfile, sample):
     plt.savefig(outfile, bbox_inches='tight', dpi=400)
 
 
-def plot_mean_cluster(df, outfile):
-    for col in list(df):
-        df[col] = scipy.stats.zscore(df[col])
+def _mean_cluster(df, zscore=True):
+    if zscore:
+        for col in list(df):
+            df[col] = scipy.stats.zscore(df[col])
 
     row_linkage = scipy.cluster.hierarchy.linkage(df, method="average", optimal_ordering=True)
 
     order = scipy.cluster.hierarchy.leaves_list(row_linkage)
     x_pop = df.index.values[order]
+    return row_linkage, df[x_pop]
 
-    cg = sns.clustermap(df[x_pop], row_linkage=row_linkage, col_cluster=False, rasterized=True)
+def plot_mean_cluster(df, outfile=None, title=None, zscore=True):
+    row_linkage, df = _mean_cluster(df, zscore)
+    cg = sns.clustermap(df, row_linkage=row_linkage, col_cluster=False, rasterized=True)
     cg.ax_heatmap.set_ylabel("")
+    cg.fig.suptitle(title)
     for tick in cg.ax_heatmap.get_xticklabels():
         tick.set_rotation(-45)
         tick.set_ha('left')
         tick.set_rotation_mode("anchor")
-    plt.savefig(outfile, bbox_inches='tight', dpi=400)
+    if outfile is not None:
+        plt.savefig(outfile, bbox_inches='tight', dpi=400)
 
 
-def plot_gnn(df, outfile, groups, sample_group_sets):
+def plot_gnn(df, outfile, groups, sample_group_sets, title=None):
     # Track gnn proportion for each individual
     A = np.zeros((len(sample_group_sets), len(df)))
     colours = make_colour_map(groups)
@@ -213,6 +242,7 @@ def plot_gnn(df, outfile, groups, sample_group_sets):
     ax.set_xticks(np.array(xticks))
     ax.set_xticklabels(groups, rotation='vertical')
     ax.set_yticks([])
+    ax.set_title(title)
     #ax.legend(groups)
     # ax.axis('off')
     plt.savefig(outfile, bbox_inches='tight', dpi=400)
