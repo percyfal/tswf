@@ -22,7 +22,8 @@ properties:
   rules:
     default: {}
     $ref: "definitions.schema.yaml#/definitions/rules.config"
-
+  derive_aa:
+    $ref: "definitions.schema.yaml#/definitions/derive_aa"
   
 # entries that have to be in the config file for successful validation
 required:

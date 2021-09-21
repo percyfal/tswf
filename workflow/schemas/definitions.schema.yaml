@@ -114,7 +114,28 @@ definitions:
         description: >-
           tsinfer rule resources
         $ref: "#/definitions/rule.config"
+      ^(derive_ancestral_by_vote):
+        description: >-
+          ancestral allele rule resources
+        $ref: "#/definitions/rule.config"
 
+
+  ##############################
+  # Misc rules
+  ##############################
+  derive_aa:
+    description: >-
+      Rules for deriving ancestral allele configuration schema
+    type: object
+    properties:
+      method:
+        type: string
+        default: 'vote'
+        enum: ['vote'] ## Add methods suggested on tsinfer list here
+      options:
+        type: object
+        default: {}
+      
         
   ##############################
   # Analysis
@@ -155,6 +176,9 @@ definitions:
       rules:
         default: {}
         $ref: "#/definitions/rules.config"
+      derive_aa:
+        type: object
+        $ref: "#/definitions/derive_aa"
     required:
       - dataset
     additionalProperties: false

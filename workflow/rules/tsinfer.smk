@@ -30,6 +30,7 @@ rule tsinfer_infer:
     params:
         length=lambda wildcards: refdict[wildcards.chrom],
         samples=lambda wildcards: cfg.get_analysis(wildcards.analysis).samples.data,
+        populations=populations.data
     threads: 20
     conda:
         "../envs/tsinfer.yaml"
@@ -91,13 +92,13 @@ rule tsinfer_eda:
         html="{results}/{analysis}/{dataset}/eda.html"
     input:
         csv=lambda wildcards: expand(expand("{{{{results}}}}/{{{{analysis}}}}/{{{{dataset}}}}/{fmt}.gnn.csv",
-                                            fmt=cfg.get_analysis(wildcards.analysis).fmt),
+                                            fmt=fmt(wildcards)),
                                      chrom=cfg.get_analysis(wildcards.analysis).chromosomes),
         trees=lambda wildcards: expand(expand(__INTERIM__ / "{{{{analysis}}}}/{{{{dataset}}}}/{fmt}.trees",
-                                              fmt=cfg.get_analysis(wildcards.analysis).fmt),
+                                              fmt=fmt(wildcards)),
                                        chrom=cfg.get_analysis(wildcards.analysis).chromosomes)
     params:
-        fmt = lambda wildcards: cfg.get_analysis(wildcards.analysis).fmt
+        fmt = fmt
     conda:
         "../envs/plotting.yaml"
     log:

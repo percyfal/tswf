@@ -1,5 +1,6 @@
 channels:
   - conda-forge
 dependencies:
-  - tsinfer
   - cyvcf2
+  - pandas
+  - tsinfer

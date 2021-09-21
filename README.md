@@ -1,14 +1,22 @@
 # Snakemake workflow: wg-genealogy-smk
 
-[![Snakemake](https://img.shields.io/badge/snakemake-≥6.4.0-brightgreen.svg)](https://snakemake.bitbucket.io)
-[![Build Status](https://travis-ci.org/snakemake-workflows/wg-genealogy-smk.svg?branch=master)](https://travis-ci.org/snakemake-workflows/wg-genealogy-smk)
+[![Snakemake](https://img.shields.io/badge/snakemake-≥6.8.0-brightgreen.svg)](https://snakemake.bitbucket.io)
+[![Tests](https://github.com/percyfal/wg-genealogy-smk/actions/workflows/main.yaml/badge.svg)](https://github.com/percyfal/wg-genealogy-smk/actions/workflows/main.yaml)
 
-This is the template for a new Snakemake workflow. Replace this text with a comprehensive description covering the purpose and domain.
-Insert your code into the respective folders, i.e. `scripts`, `rules`, and `envs`. Define the entry point of the workflow in the `Snakefile` and the main configuration in the `config.yaml` file.
+## About
+
+Snakemake workflow for whole genome genealogy analyses. Supported methods include:
+
+- [tsinfer](https://github.com/tskit-dev/tsinfer "tree sequence inference")
+- [Relate](https://myersgroup.github.io/relate/ "estimate genome-wide genealogies")
 
 ## Authors
 
 * Per Unneberg (@percyfal)
+
+## Congfiguration
+
+WIP (see tests).
 
 ## Usage
 

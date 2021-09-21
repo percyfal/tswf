@@ -52,7 +52,6 @@ try:
             [
                 (x.split()[0], int(x.split()[1]))
                 for x in fh.readlines()
-                if x.startswith("chr")
             ]
         )
 except Exception as e:
@@ -86,11 +85,16 @@ def all_tsinfer(wildcards):
     out = []
     for analysis in cfg.analyses("tsinfer"):
         logger.info(f"Collecting files for tsinfer: {analysis.name}")
-        # FIXME: move to Analysis object
-        fmt = (
-            __RESULTS__
-            / f"{analysis.name}/{analysis.dataset}/{analysis.fmt}{{plot}}.png"
-        )
-        d = {"chrom": analysis.chromosomes, "plot": [".gnn", ".R.gnn", ".mean"]}
-        out.extend(expand(fmt, **d))
+        eda = __RESULTS__ / f"{analysis.name}/{analysis.dataset}/eda.html"
+        out.append(eda)
     return out
+
+
+##################################################
+# Formatting functions
+##################################################
+def fmt(wildcards):
+    value = cfg.get_analysis(wildcards.analysis).fmt
+    if "derive_aa" in cfg.keys():
+        value = value + f"_AA_{cfg.derive_aa.method}"
+    return value

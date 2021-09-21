@@ -12,10 +12,16 @@ import cyvcf2
 import json as json
 import pandas as pd
 from tqdm import tqdm
+import logging
+FORMAT = '%(levelname)s:tsinfer:%(asctime)-15s %(message)s'
+logging.basicConfig(format=FORMAT)
+logger = logging.getLogger('tsinfer')
+
 
 inputvcf = snakemake.input.vcf
 inputcsi = snakemake.input.csi
 df_meta = snakemake.params.samples
+df_pop = snakemake.params.populations
 chrom = snakemake.wildcards.chrom
 chromlength = snakemake.params.length
 tsout = snakemake.output.trees
@@ -64,30 +70,30 @@ def add_diploid_sites(vcf, samples, df_filt):
             print(e)
             raise
 
-
+# Should only look at the population metadata file
 def add_populations(vcf, samples):
     """Add numeric population id for each sample to samples"""
     # subset the metadata frame by the samples in the vcf that was loaded. This returns in order, the vcf samples
     vcf_samples = pd.DataFrame({"SM": vcf.samples})
-    # TODO: Check that samples in vcf_samples actually exist in df_meta
-    df_filt = (
-        vcf_samples.merge(df_meta, left_on="SM", right_on="SM", right_index=True)
-        .set_index(["SM"], drop=True)
-        .loc[:, :]
-    )
+    if not all(vcf_samples.SM.isin(df_meta.index)):
+        logger.warning("Some samples in vcf file not present in sample metadata")
+    try:
+        df_filt = (
+            vcf_samples.merge(df_meta, left_on="SM", right_on="SM", right_index=True)
+            .set_index(["SM"], drop=True)
+            .loc[:, :]
+        )
+    except KeyError as e:
+        print(e)
+        raise
+    except Exception as e:
+        raise
     sample_pops = list(df_filt.population)
     pop_lookup = {}
     for pop in set(sample_pops):
-        ## Drop name column as it otherwise would give a redundant
-        ## population metadata frame? This requires that name be
-        ## present and be one-to-one mapping with SM. No such check is currently done.
-        md = (
-            df_filt[df_filt.population == pop]
-            .drop(["name"], axis=1)
-            .drop_duplicates(ignore_index=True)
-        )
-        md = {k: v[0] for k, v in md.iteritems()}
-        # tsinfer.SampleData.add_population returns ID of newly added population
+        md = df_pop.loc[pop]
+        md = {k: v for k, v in md.iteritems()}
+        md['population'] = pop
         pop_lookup[pop] = samples.add_population(metadata=md)
     return [pop_lookup[pop] for pop in sample_pops], df_filt
 
@@ -95,7 +101,9 @@ def add_populations(vcf, samples):
 def add_diploid_individuals(vcf, samples, populations):
     """Add sample name and population id to samples"""
     for name, population in zip(vcf.samples, populations):
-        samples.add_individual(ploidy=2, metadata={"name": name}, population=population)
+        md = {"name": name, "SM": name}
+        md.update(dict(df_meta.loc[name]))
+        samples.add_individual(ploidy=2, metadata=md, population=population)
 
 
 def init_vcf(fn, samplenames):
