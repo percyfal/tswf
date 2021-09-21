@@ -53,7 +53,7 @@ rule tsinfer_tsdate:
     input:
         trees=__INTERIM__ / "{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.trees",
     wildcard_constraints:
-        Ne="\d+",
+        Ne="[0-9]+",
     params:
         options="-m 1e-8 --ignore-oldest ",
     threads: 20
