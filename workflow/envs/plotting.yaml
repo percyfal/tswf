@@ -3,4 +3,3 @@ channels:
 dependencies:
   - bokeh=2.3.3
   - tskit
-  - snakemake
