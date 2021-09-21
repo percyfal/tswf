@@ -1,9 +1,9 @@
 rule bcftools_index:
     """Index a vcf file"""
     output:
-        "{prefix}.vcf.gz.{ext}",
+        "{prefix}{bcf}.{ext}",
     input:
-        "{prefix}.vcf.gz",
+        "{prefix}{bcf}",
     wildcard_constraints:
         ext="(csi|tbi)",
     conda:
@@ -11,7 +11,7 @@ rule bcftools_index:
     envmodules:
         *cfg.ruleconf("bcftools_index").params("envmodules"),
     log:
-        "logs/{prefix}.vcf.gz.{ext}.log",
+        "logs/{prefix}{bcf}.{ext}.log",
     shell:
         "bcftools index --{wildcards.ext} {input} -o {output} > {log} 2>&1"
 
@@ -31,7 +31,7 @@ rule tsinfer_infer:
         length=lambda wildcards: refdict[wildcards.chrom],
         samples=lambda wildcards: cfg.get_analysis(wildcards.analysis).samples.data,
         populations=populations.data,
-        fmt = fmt
+        fmt=fmt,
     threads: 20
     conda:
         "../envs/tsinfer.yaml"
@@ -77,7 +77,7 @@ rule tsinfer_gnn:
         trees=__INTERIM__ / "{analysis}/{dataset}/{prefix}{chrom}{suffix}.trees",
     threads: 1
     resources:
-        mem_mb = xx_mem_mb
+        mem_mb=xx_mem_mb,
     conda:
         "../envs/tsinfer.yaml"
     envmodules:
@@ -87,19 +87,28 @@ rule tsinfer_gnn:
     script:
         "../scripts/tsinfer-gnn.py"
 
+
 rule tsinfer_eda:
     """Make EDA document based on bokeh plots"""
     output:
-        html="{results}/{analysis}/{dataset}/eda.html"
+        html="{results}/{analysis}/{dataset}/eda.html",
     input:
-        csv=lambda wildcards: expand(expand("{{{{results}}}}/{{{{analysis}}}}/{{{{dataset}}}}/{fmt}.gnn.csv",
-                                            fmt=fmt(wildcards)),
-                                     chrom=cfg.get_analysis(wildcards.analysis).chromosomes),
-        trees=lambda wildcards: expand(expand(__INTERIM__ / "{{{{analysis}}}}/{{{{dataset}}}}/{fmt}.trees",
-                                              fmt=fmt(wildcards)),
-                                       chrom=cfg.get_analysis(wildcards.analysis).chromosomes)
+        csv=lambda wildcards: expand(
+            expand(
+                "{{{{results}}}}/{{{{analysis}}}}/{{{{dataset}}}}/{fmt}.gnn.csv",
+                fmt=fmt(wildcards),
+            ),
+            chrom=cfg.get_analysis(wildcards.analysis).chromosomes,
+        ),
+        trees=lambda wildcards: expand(
+            expand(
+                __INTERIM__ / "{{{{analysis}}}}/{{{{dataset}}}}/{fmt}.trees",
+                fmt=fmt(wildcards),
+            ),
+            chrom=cfg.get_analysis(wildcards.analysis).chromosomes,
+        ),
     params:
-        fmt = fmt
+        fmt=fmt,
     conda:
         "../envs/plotting.yaml"
     log:
@@ -138,9 +147,12 @@ rule tsinfer_gnn_plot:
     metadata and could possibly be precalculated in tsinfer gnn rules.
     """
     output:
-        png=report("{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.{datatype}{dot}{sample}.png",
-                   caption="../report/meangnn.rst", category="{dataset}",
-                   subcategory="{analysis}: {datatype} plot")
+        png=report(
+            "{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.{datatype}{dot}{sample}.png",
+            caption="../report/meangnn.rst",
+            category="{dataset}",
+            subcategory="{analysis}: {datatype} plot",
+        ),
     input:
         csv=__RESULTS__
         / "{analysis}/{dataset}/{prefix}{chrom}{suffix}.{datatype}{dot}{sample}.csv",
@@ -148,7 +160,7 @@ rule tsinfer_gnn_plot:
             **dict(wildcards)
         ),
     resources:
-        mem_mb = xx_mem_mb
+        mem_mb=xx_mem_mb,
     threads: 1
     wildcard_constraints:
         datatype="(mean|gnn)",
@@ -166,13 +178,16 @@ rule tsinfer_gnn_plot:
 rule tsinfer_gnn_plot_R:
     """Make gnn plots"""
     output:
-        png=report("{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.R.gnn.png",
-                   caption="../report/gnn.rst", category="{dataset}",
-                   subcategory="{analysis}: Genealogical Nearest Neighbours plot")
+        png=report(
+            "{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.R.gnn.png",
+            caption="../report/gnn.rst",
+            category="{dataset}",
+            subcategory="{analysis}: Genealogical Nearest Neighbours plot",
+        ),
     input:
         gnn=__RESULTS__ / "{analysis}/{dataset}/{prefix}{chrom}{suffix}.gnn.csv",
-        samples=config["samples"], #?!? should subset on analysis!
-        populations=cfg.populations, # DITTO
+        samples=config["samples"],  #?!? should subset on analysis!
+        populations=cfg.populations,  # DITTO
     params:
         samples=lambda wildcards: cfg.get_analysis(
             wildcards.analysis
@@ -180,7 +195,7 @@ rule tsinfer_gnn_plot_R:
     wildcard_constraints:
         label="(|.mean)",
     resources:
-        mem_mb = x_mem_mb
+        mem_mb=x_mem_mb,
     threads: 1
     conda:
         "../envs/tsinfer.yaml"

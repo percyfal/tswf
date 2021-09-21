@@ -17,62 +17,81 @@ try:
     outputfile = snakemake.output.vcf
     outgroup = snakemake.params.outgroup
     options = snakemake.params.options
+    logfile = str(snakemake.log)
 except NameError as e:
     inputfile = None
     outputfile = None
     outgroup = None
-    options = {'n': 1, 'ploidy': 2}
+    options = {"n": 1, "ploidy": 2}
+    logfile = sys.stdout
 
-parser = argparse.ArgumentParser(description="""
+parser = argparse.ArgumentParser(
+    description="""
 Infer ancestral alleles in vcf based on majority vote in outgroups.
-""")
-parser.add_argument("--outgroup", metavar="outgroup", type=str,
-                    help="outgroup name", action="append", default=outgroup)
-parser.add_argument("--ploidy", metavar="ploidy", type=int, default=options.get('ploidy', 2),
-                    help="set the ploidy")
-parser.add_argument("-n", metavar="n", type=int, default=options.get('n', 1),
-                    help="number of haplotypes that need to agree on ancestral state")
-parser.add_argument("vcf", type=str, nargs="?",
-                    help="Input vcf file", default=inputfile)
-parser.add_argument("outfile", type=str, nargs="?",
-                    help="Output vcf file", default=outputfile)
+"""
+)
+parser.add_argument(
+    "--outgroup",
+    metavar="outgroup",
+    type=str,
+    help="outgroup name",
+    action="append",
+    default=outgroup,
+)
+parser.add_argument(
+    "--ploidy",
+    metavar="ploidy",
+    type=int,
+    default=options.get("ploidy", 2),
+    help="set the ploidy",
+)
+parser.add_argument(
+    "-n",
+    metavar="n",
+    type=int,
+    default=None,
+    help="number of haplotypes that need to agree on ancestral state",
+)
+parser.add_argument(
+    "vcf", type=str, nargs="?", help="Input vcf file", default=inputfile
+)
+parser.add_argument(
+    "outfile", type=str, nargs="?", help="Output vcf file", default=outputfile
+)
 
 args = parser.parse_args()
+outgroup = args.outgroup
 
-if args.outgroup is None:
+if outgroup is None:
     logging.error("Need at least one outgroup")
     sys.exit(1)
 
-nvote = max(args.n, 1)
-if (args.n < 1):
-    pass
-elif (args.n > len(args.outgroup)):
-    nvote = len(args.outgroup) * args.ploidy
-
+if args.n is None or args.n < 1 or args.n > len(outgroup) * args.ploidy:
+    nvote = len(outgroup) * args.ploidy
+else:
+    nvote = args.n
 
 vcf = cyvcf2.VCF(args.vcf)
 # Make sure outgroups in samples
-if not set(args.outgroup) <= set(vcf.samples):
+if not set(outgroup) <= set(vcf.samples):
     logging.error("not all outgroup names found in vcf sample header")
     sys.exit(1)
 
 
-
 n_pass = 0
 n_skip = 0
-indices = [i for i in range(len(vcf.samples)) if vcf.samples[i] in args.outgroup]
+indices = [i for i in range(len(vcf.samples)) if vcf.samples[i] in outgroup]
 outext = re.compile(r"(.vcf|.vcf.gz|.bcf)$").search(args.outfile)
 if outext is None:
     logging.error("please use file extension .vcf, .vcf.gz, or .bcf")
     sys.exit(1)
 outext = outext.group(1)
-mode = {'.vcf': "w", '.vcf.gz': "wz", '.bcf': "wb"}[outext]
+mode = {".vcf": "w", ".vcf.gz": "wz", ".bcf": "wb"}[outext]
 
 
-vcf.add_info_to_header({"ID": "AA",
-                        "Number": 1,
-                        "Type": "Character",
-                        "Description": "Ancestral Allele"})
+vcf.add_info_to_header(
+    {"ID": "AA", "Number": 1, "Type": "Character", "Description": "Ancestral Allele"}
+)
 vcfwriter = cyvcf2.cyvcf2.Writer(args.outfile, vcf, mode)
 for variant in tqdm(vcf):
     alleles = [variant.REF] + variant.ALT
@@ -103,7 +122,15 @@ for variant in tqdm(vcf):
         n_skip = n_skip + 1
 vcfwriter.close()
 
-print("get_ancestral_allel.py summary")
-print("------------------------------")
-print(f"N pass: {n_pass}")
-print(f"N skip: {n_skip}")
+if isinstance(logfile, str):
+    fh = open(logfile, "w")
+else:
+    fh = logfile
+
+fh.write("get_ancestral_allel.py summary\n")
+fh.write("------------------------------\n")
+fh.write(f"outgroups: {outgroup}\n")
+fh.write(f"nvote: {nvote}\n")
+fh.write(f"N pass: {n_pass}\n")
+fh.write(f"N skip: {n_skip}\n")
+fh.close()

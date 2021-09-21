@@ -48,12 +48,7 @@ __RAW__ = Path("data/raw")
 
 try:
     with open(f"{cfg.ref}.fai") as fh:
-        refdict = dict(
-            [
-                (x.split()[0], int(x.split()[1]))
-                for x in fh.readlines()
-            ]
-        )
+        refdict = dict([(x.split()[0], int(x.split()[1])) for x in fh.readlines()])
 except Exception as e:
     logger.error("please run samtools faidx on the reference file!")
     raise
@@ -64,14 +59,17 @@ except Exception as e:
 ##############################
 wildcard_constraints:
     analysis=wildcards_or(cfg.analysisnames),
-    chrom=wildcards_or(cfg.chromosomes ),
+    bcf="(.vcf.gz|.bcf)",
+    chrom=wildcards_or(cfg.chromosomes),
     dot="(.|)",
     interim=str(__INTERIM__),
     population=wildcards_or(cfg.samples.populations),
     prefix="(.+|)",
     results=str(__RESULTS__),
     sample=wildcards_or(cfg.samples.samples, empty=True),
-    suffix="(.+|)"
+    suffix="(.+|)",
+    vcf="(.vcf.gz|.vcf|.bcf)",
+
 
 ##################################################
 # Input collection functions
