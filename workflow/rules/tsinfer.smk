@@ -22,22 +22,23 @@ rule tsinfer_infer:
     Generate tskit tree file.
     """
     output:
-        trees="{interim}/{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.trees",
-        samples="{interim}/{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.samples",
+        trees="{interim}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.trees",
+        samples="{interim}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.samples",
     input:
-        vcf=__RAW__ / "variants/{dataset}/{prefix}_{chrom}_{suffix}.vcf.gz",
-        csi=__RAW__ / "variants/{dataset}/{prefix}_{chrom}_{suffix}.vcf.gz.csi",
+        vcf=__RAW__ / "variants/{dataset}/{prefix}{chrom}{suffix}.vcf.gz",
+        csi=__RAW__ / "variants/{dataset}/{prefix}{chrom}{suffix}.vcf.gz.csi",
     params:
         length=lambda wildcards: refdict[wildcards.chrom],
         samples=lambda wildcards: cfg.get_analysis(wildcards.analysis).samples.data,
-        populations=populations.data
+        populations=populations.data,
+        fmt = fmt
     threads: 20
     conda:
         "../envs/tsinfer.yaml"
     envmodules:
         *cfg.ruleconf("tsinfer_infer").params("envmodules"),
     log:
-        "logs/{interim}/{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.log",
+        "logs/{interim}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.log",
     script:
         "../scripts/tsinfer.py"
 
@@ -49,9 +50,9 @@ rule tsinfer_infer:
 rule tsinfer_tsdate:
     """Run tsdate on trees"""
     output:
-        trees="{interim}/{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.tsdate.{Ne}.trees",
+        trees="{interim}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.tsdate.{Ne}.trees",
     input:
-        trees=__INTERIM__ / "{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.trees",
+        trees=__INTERIM__ / "{analysis}/{dataset}/{prefix}{chrom}{suffix}.trees",
     wildcard_constraints:
         Ne="[0-9]+",
     params:
@@ -62,7 +63,7 @@ rule tsinfer_tsdate:
     envmodules:
         *cfg.ruleconf("tsinfer_tsdate").params("envmodules"),
     log:
-        "logs/{interim}/{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.tsdate.{Ne}.log",
+        "logs/{interim}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.tsdate.{Ne}.log",
     shell:
         "tsdate date -v 1 -p -t {threads} {params.options} {input.trees} {output.trees} {wildcards.Ne} 2>&1 > {log}"
 
@@ -70,10 +71,10 @@ rule tsinfer_tsdate:
 rule tsinfer_gnn:
     """Convert tree sequence to gnn"""
     output:
-        gnn="{results}/{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.gnn.csv",
-        mean="{results}/{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.mean.csv",
+        gnn="{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.gnn.csv",
+        mean="{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.mean.csv",
     input:
-        trees=__INTERIM__ / "{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.trees",
+        trees=__INTERIM__ / "{analysis}/{dataset}/{prefix}{chrom}{suffix}.trees",
     threads: 1
     resources:
         mem_mb = xx_mem_mb
@@ -82,7 +83,7 @@ rule tsinfer_gnn:
     envmodules:
         *cfg.ruleconf("tsinfer_gnn").params("envmodules"),
     log:
-        "logs/{results}/{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.log",
+        "logs/{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.log",
     script:
         "../scripts/tsinfer-gnn.py"
 
@@ -111,16 +112,16 @@ rule tsinfer_eda:
 rule tsinfer_sample_gnn:
     """Calculate gnn data for a single sample"""
     output:
-        csv="{results}/{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.gnn.{sample}.csv",
+        csv="{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.gnn.{sample}.csv",
     input:
-        trees=__INTERIM__ / "{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.trees",
+        trees=__INTERIM__ / "{analysis}/{dataset}/{prefix}{chrom}{suffix}.trees",
     threads: 1
     conda:
         "../envs/tsinfer.yaml"
     envmodules:
         *cfg.ruleconf("tsinfer_sample_gnn").params("envmodules"),
     log:
-        "logs/{results}/{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.gnn.{sample}.log",
+        "logs/{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.gnn.{sample}.log",
     script:
         "../scripts/tsinfer-sample-gnn.py"
 
@@ -137,13 +138,13 @@ rule tsinfer_gnn_plot:
     metadata and could possibly be precalculated in tsinfer gnn rules.
     """
     output:
-        png=report("{results}/{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.{datatype}{dot}{sample}.png",
+        png=report("{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.{datatype}{dot}{sample}.png",
                    caption="../report/meangnn.rst", category="{dataset}",
                    subcategory="{analysis}: {datatype} plot")
     input:
         csv=__RESULTS__
-        / "{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.{datatype}{dot}{sample}.csv",
-        samples=lambda wildcards: "data/interim/{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.samples".format(
+        / "{analysis}/{dataset}/{prefix}{chrom}{suffix}.{datatype}{dot}{sample}.csv",
+        samples=lambda wildcards: "data/interim/{analysis}/{dataset}/{prefix}{chrom}{suffix}.samples".format(
             **dict(wildcards)
         ),
     resources:
@@ -156,7 +157,7 @@ rule tsinfer_gnn_plot:
     envmodules:
         *cfg.ruleconf("tsinfer_gnn_plot").params("envmodules"),
     log:
-        "logs/{results}/{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.{datatype}{dot}{sample}.log",
+        "logs/{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.{datatype}{dot}{sample}.log",
     script:
         "../scripts/tsinfer-plot.py"
 
@@ -165,11 +166,11 @@ rule tsinfer_gnn_plot:
 rule tsinfer_gnn_plot_R:
     """Make gnn plots"""
     output:
-        png=report("{results}/{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.R.gnn.png",
+        png=report("{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.R.gnn.png",
                    caption="../report/gnn.rst", category="{dataset}",
                    subcategory="{analysis}: Genealogical Nearest Neighbours plot")
     input:
-        gnn=__RESULTS__ / "{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.gnn.csv",
+        gnn=__RESULTS__ / "{analysis}/{dataset}/{prefix}{chrom}{suffix}.gnn.csv",
         samples=config["samples"], #?!? should subset on analysis!
         populations=cfg.populations, # DITTO
     params:
@@ -186,6 +187,6 @@ rule tsinfer_gnn_plot_R:
     envmodules:
         *cfg.ruleconf("tsinfer_gnn_plot_R").params("envmodules"),
     log:
-        "logs/{results}/{analysis}/{dataset}/{prefix}_{chrom}_{suffix}.R.gnn.png",
+        "logs/{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.R.gnn.png",
     script:
         "../scripts/plot-gnn.R"

@@ -159,7 +159,7 @@ definitions:
       fmt:
         type: string
         default: "{chrom}"
-        pattern: "^.+_{chrom}_.+$"
+        pattern: ^.*{chrom}.*$
         description: >-
           Python miniformat string describing the prefix of the input
           and output files. Must contain the {chrom} wildcard.

@@ -68,9 +68,10 @@ wildcard_constraints:
     dot="(.|)",
     interim=str(__INTERIM__),
     population=wildcards_or(cfg.samples.populations),
+    prefix="(.+|)",
     results=str(__RESULTS__),
     sample=wildcards_or(cfg.samples.samples, empty=True),
-
+    suffix="(.+|)"
 
 ##################################################
 # Input collection functions
