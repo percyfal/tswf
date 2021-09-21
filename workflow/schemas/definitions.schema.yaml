@@ -165,14 +165,26 @@ definitions:
           and output files. Must contain the {chrom} wildcard.
       subset:
         type: object
-        patternProperties:
-          '[a-zA-Z0-9_]+':
-            description: >-
-              Keys in sample data frame for selecting subsets of
-              samples. All samples are included if left empty.
-            type: array
-            items:
-              type: string
+        properties:
+          include:
+            patternProperties:
+              '[a-zA-Z0-9_]+':
+                description: >-
+                  Keys in sample data frame for selecting subsets of
+                  samples. All samples are included if left empty.
+                type: array
+                items:
+                  type: string
+          exclude:
+            patternProperties:
+              '[a-zA-Z0-9_]+':
+                description: >-
+                  Keys in sample data frame for excluding subsets of
+                  samples.
+                type: array
+                items:
+                  type: string
+        additionalProperties: false
       rules:
         default: {}
         $ref: "#/definitions/rules.config"

@@ -238,7 +238,10 @@ class Analysis(PropertyDict):
         default.update(**kw)
         super().__init__(default)
         if "subset" in self.keys():
-            self["samples"] = self.samples.subset(**self.subset)
+            if "include" in self["subset"]:
+                self["samples"] = self.samples.subset(**self.subset.include)
+            if "exclude" in self["subset"]:
+                self["samples"] = self.samples.subset(**self.subset.exclude, invert=True)
         self._name = name
 
     @property
