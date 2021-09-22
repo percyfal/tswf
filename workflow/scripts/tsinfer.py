@@ -89,7 +89,7 @@ def add_populations(vcf, samples):
         raise
     sample_pops = list(df_filt.population)
     pop_lookup = {}
-    for pop in set(sample_pops):
+    for pop in sorted(set(sample_pops)):
         md = df_pop.loc[pop]
         md = {k: v for k, v in md.iteritems()}
         md['population'] = pop
@@ -104,7 +104,6 @@ def add_diploid_individuals(vcf, samples, populations):
         md.update(dict(df_meta.loc[name]))
         samples.add_individual(ploidy=2, metadata=md, population=population)
 
-
 def init_vcf(fn, samplenames):
     vcf = cyvcf2.VCF(fn)
     try:
@@ -117,9 +116,9 @@ def init_vcf(fn, samplenames):
 
 # Init vcf
 vcf = init_vcf(inputvcf, df_meta.index.to_list())
-samples = vcf.samples
 
 samples_path = re.sub(".trees$", ".samples", tsout)
+
 with tsinfer.SampleData(path=samples_path, sequence_length=chromlength) as samples:
     populations, df_filt = add_populations(vcf, samples)
     add_diploid_individuals(vcf, samples, populations)
