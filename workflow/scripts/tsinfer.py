@@ -29,7 +29,7 @@ tsout = snakemake.output.trees
 print(f"...read {df_meta.shape[0]} entries\n")
 
 
-def add_diploid_sites(vcf, samples, df_filt):
+def add_diploid_sites(vcf, samples):
     """
     Read the sites in the vcf and add them to the samples object, reordering the
     alleles to put the ancestral allele first, if it is available.
@@ -94,7 +94,7 @@ def add_populations(vcf, samples):
         md = {k: v for k, v in md.iteritems()}
         md['population'] = pop
         pop_lookup[pop] = samples.add_population(metadata=md)
-    return [pop_lookup[pop] for pop in sample_pops], df_filt
+    return [pop_lookup[pop] for pop in sample_pops]
 
 
 def add_diploid_individuals(vcf, samples, populations):
@@ -120,9 +120,9 @@ vcf = init_vcf(inputvcf, df_meta.index.to_list())
 samples_path = re.sub(".trees$", ".samples", tsout)
 
 with tsinfer.SampleData(path=samples_path, sequence_length=chromlength) as samples:
-    populations, df_filt = add_populations(vcf, samples)
+    populations = add_populations(vcf, samples)
     add_diploid_individuals(vcf, samples, populations)
-    add_diploid_sites(vcf, samples, df_filt)
+    add_diploid_sites(vcf, samples)
 
 print(
     "Sample file created for {} samples ".format(samples.num_samples)
