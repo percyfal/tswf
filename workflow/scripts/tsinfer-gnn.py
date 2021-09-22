@@ -44,11 +44,3 @@ gnn_table = pd.DataFrame(
 
 # Save gnn table
 gnn_table.to_csv(snakemake.output.gnn, header = True)
-
-
-## FIXME: this should be an option; don't know beforehand how we want
-## to group data
-
-# Calculate mean overall gnn scores grouped by Species
-gnn_mean = gnn_table.groupby(level="Species").mean()
-gnn_mean.to_csv(snakemake.output.mean, header = True)

@@ -72,7 +72,6 @@ rule tsinfer_gnn:
     """Convert tree sequence to gnn"""
     output:
         gnn="{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.gnn.csv",
-        mean="{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.mean.csv",
     input:
         trees=__INTERIM__ / "{analysis}/{dataset}/{prefix}{chrom}{suffix}.trees",
     threads: 1
