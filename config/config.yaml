@@ -19,4 +19,5 @@ tsinfer/test:
   dataset: ooa
   fmt: ooa_{chrom}_PASS
   subset:
-    population: ["CEU", "CHB", "YRI"]
+    include:
+      population: ["CEU", "CHB", "YRI"]
