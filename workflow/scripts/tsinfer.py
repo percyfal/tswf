@@ -70,16 +70,15 @@ def add_diploid_sites(vcf, samples, df_filt):
             print(e)
             raise
 
-# Should only look at the population metadata file
+
 def add_populations(vcf, samples):
     """Add numeric population id for each sample to samples"""
-    # subset the metadata frame by the samples in the vcf that was loaded. This returns in order, the vcf samples
     vcf_samples = pd.DataFrame({"SM": vcf.samples})
     if not all(vcf_samples.SM.isin(df_meta.index)):
         logger.warning("Some samples in vcf file not present in sample metadata")
     try:
         df_filt = (
-            vcf_samples.merge(df_meta, left_on="SM", right_on="SM", right_index=True)
+            vcf_samples.merge(df_meta, left_on="SM", right_on="SM", left_index=True)
             .set_index(["SM"], drop=True)
             .loc[:, :]
         )
