@@ -94,6 +94,6 @@ def all_tsinfer(wildcards):
 ##################################################
 def fmt(wildcards):
     value = cfg.get_analysis(wildcards.analysis).fmt
-    if "derive_aa" in cfg.keys():
+    if len(cfg.derive_aa.outgroups) != 0:
         value = value + f"_AA_{cfg.derive_aa.method}"
     return value

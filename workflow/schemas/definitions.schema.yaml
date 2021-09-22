@@ -127,6 +127,7 @@ definitions:
     description: >-
       Rules for deriving ancestral allele configuration schema
     type: object
+    default: {}
     properties:
       method:
         type: string
@@ -135,7 +136,13 @@ definitions:
       options:
         type: object
         default: {}
-      
+      outgroups:
+        type: array
+        default: []
+        items:
+          type: string
+          uniqueItems: true
+    additionalProperties: false
         
   ##############################
   # Analysis
@@ -190,6 +197,7 @@ definitions:
         $ref: "#/definitions/rules.config"
       derive_aa:
         type: object
+        default: {}
         $ref: "#/definitions/derive_aa"
     required:
       - dataset

@@ -5,8 +5,8 @@ rule derive_ancestral_by_vote:
         vcf=__RAW__ / "variants/{dataset}/{prefix}{bcf}",
         tbi=__RAW__ / "variants/{dataset}/{prefix}{bcf}.tbi",
     params:
-        outgroup=cfg.get("derive_aa", {}).get("outgroups", []),
-        options=dict(cfg.get("derive_aa", {}).get("options", {})),
+        outgroup=cfg.derive_aa.outgroups,
+        options=dict(cfg.derive_aa.options),
     conda:
         "../envs/tsinfer.yaml"
     log:

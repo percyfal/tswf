@@ -23,6 +23,7 @@ properties:
     default: {}
     $ref: "definitions.schema.yaml#/definitions/rules.config"
   derive_aa:
+    default: {}
     $ref: "definitions.schema.yaml#/definitions/derive_aa"
   
 # entries that have to be in the config file for successful validation
