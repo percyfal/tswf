@@ -10,9 +10,10 @@ repos:
     hooks:
       - id: black
   - repo: https://github.com/snakemake/snakefmt
-    rev: 0.4.2
+    rev: 0.4.3
     hooks:
       - id: snakefmt
+        args: [--config .pyproject.toml]
   - repo: local
     hooks:
       - id: lint
