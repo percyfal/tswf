@@ -89,6 +89,28 @@ def all_tsinfer(wildcards):
     return out
 
 
+##############################
+# tsinfer
+##############################
+def tsinfer_eda_input(wildcards):
+    """Return input files for tsinfer eda"""
+    csv=expand(
+        expand(
+            "{{{{results}}}}/{{{{analysis}}}}/{{{{dataset}}}}/{fmt}.gnn.csv",
+            fmt=fmt(wildcards),
+        ),
+        chrom=cfg.get_analysis(wildcards.analysis).chromosomes,
+    )
+    trees=expand(
+        expand(
+            __INTERIM__ / "{{{{analysis}}}}/{{{{dataset}}}}/{fmt}.trees",
+            fmt=fmt(wildcards),
+        ),
+        chrom=cfg.get_analysis(wildcards.analysis).chromosomes,
+    )
+    return {'csv': csv, 'trees': trees}
+
+
 ##################################################
 # Formatting functions
 ##################################################

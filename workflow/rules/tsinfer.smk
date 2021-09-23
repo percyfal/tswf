@@ -92,20 +92,7 @@ rule tsinfer_eda:
     output:
         html="{results}/{analysis}/{dataset}/eda.html",
     input:
-        csv=lambda wildcards: expand(
-            expand(
-                "{{{{results}}}}/{{{{analysis}}}}/{{{{dataset}}}}/{fmt}.gnn.csv",
-                fmt=fmt(wildcards),
-            ),
-            chrom=cfg.get_analysis(wildcards.analysis).chromosomes,
-        ),
-        trees=lambda wildcards: expand(
-            expand(
-                __INTERIM__ / "{{{{analysis}}}}/{{{{dataset}}}}/{fmt}.trees",
-                fmt=fmt(wildcards),
-            ),
-            chrom=cfg.get_analysis(wildcards.analysis).chromosomes,
-        ),
+        unpack(tsinfer_eda_input)
     params:
         fmt=fmt,
     conda:
