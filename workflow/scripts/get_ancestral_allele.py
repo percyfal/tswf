@@ -81,7 +81,7 @@ if not set(outgroup) <= set(vcf.samples):
 n_pass = 0
 n_skip = 0
 n_change = 0
-indices = [i for i in range(len(vcf.samples)) if vcf.samples[i] in outgroup]
+outgroup_indices = [i for i in range(len(vcf.samples)) if vcf.samples[i] in outgroup]
 outext = re.compile(r"(.vcf|.vcf.gz|.bcf)$").search(args.outfile)
 if outext is None:
     logging.error("please use file extension .vcf, .vcf.gz, or .bcf")
@@ -100,17 +100,20 @@ for variant in tqdm(vcf):
     ordered_alleles = [ancestral] + list(set(alleles) - {ancestral})
     if len(ordered_alleles) > 2:
         continue
-    alleles = []
+    outgroup_alleles = []
     anc = None
-    for i in indices:
-        alleles.extend([variant.genotypes[i][0], variant.genotypes[i][1]])
-    if sum(alleles) >= n_vote:
+    for i in outgroup_indices:
+        outgroup_alleles.extend([variant.genotypes[i][0], variant.genotypes[i][1]])
+    # More derived than vote implies ancestral is actually the ALT allele
+    if sum(outgroup_alleles) >= n_vote:
         anc = variant.ALT
         n_change = n_change + 1
-    elif len(alleles) - sum(alleles) >= n_vote:
+    # More 0 alleles than vote implies REF is actually the ancestral; no change
+    elif len(outgroup_alleles) - sum(outgroup_alleles) >= n_vote:
         anc = variant.REF
     if isinstance(anc, list):
         anc = anc[0]
+    # We have a good allele
     if anc is not None:
         n_pass = n_pass + 1
         try:
@@ -121,6 +124,8 @@ for variant in tqdm(vcf):
             raise
         vcfwriter.write_record(variant)
     else:
+        # We only keep alleles that actually pass the selection
+        # criteria (n_vote)
         n_skip = n_skip + 1
 vcfwriter.close()
 
@@ -132,9 +137,11 @@ else:
 fh.write("get_ancestral_allel.py summary\n")
 fh.write("------------------------------\n")
 fh.write(f"outgroups: {outgroup}\n")
-fh.write(f"vote(n): {n_vote}\n")
-fh.write(f"pass(n): {n_pass}\n")
-fh.write(f"change(n): {n_change}\n")
-fh.write(f"skip(n): {n_skip}\n")
+fh.write(f"number of concordant alleles required in outgroups (n): {n_vote}\n")
+fh.write(
+    f"number of sites passing vote (either at least {n_vote} 0 or {n_vote} 1 calls) (n): {n_pass}\n"
+)
+fh.write(f"number of sites changed ref (>={n_vote} 1 calls) (n): {n_change}\n")
+fh.write(f"number of skipped sites (n): {n_skip}\n")
 
 fh.close()
