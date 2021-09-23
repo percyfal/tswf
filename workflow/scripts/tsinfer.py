@@ -78,7 +78,7 @@ def add_populations(vcf, samples):
         logger.warning("Some samples in vcf file not present in sample metadata")
     try:
         df_filt = (
-            vcf_samples.merge(df_meta, left_on="SM", right_on="SM", left_index=True)
+            vcf_samples.merge(df_meta, left_on="SM", right_on="SM")
             .set_index(["SM"], drop=True)
             .loc[:, :]
         )

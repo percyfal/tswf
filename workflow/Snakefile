@@ -1,5 +1,6 @@
 include: "rules/common.smk"
 include: "rules/tsinfer.smk"
+include: "rules/relate.smk"
 include: "rules/ancestral.smk"
 
 report: "report/workflow.rst"

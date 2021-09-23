@@ -67,9 +67,9 @@ if outgroup is None:
     sys.exit(1)
 
 if args.n is None or args.n < 1 or args.n > len(outgroup) * args.ploidy:
-    nvote = len(outgroup) * args.ploidy
+    n_vote = len(outgroup) * args.ploidy
 else:
-    nvote = args.n
+    n_vote = args.n
 
 vcf = cyvcf2.VCF(args.vcf)
 # Make sure outgroups in samples
@@ -80,6 +80,7 @@ if not set(outgroup) <= set(vcf.samples):
 
 n_pass = 0
 n_skip = 0
+n_change = 0
 indices = [i for i in range(len(vcf.samples)) if vcf.samples[i] in outgroup]
 outext = re.compile(r"(.vcf|.vcf.gz|.bcf)$").search(args.outfile)
 if outext is None:
@@ -103,9 +104,10 @@ for variant in tqdm(vcf):
     anc = None
     for i in indices:
         alleles.extend([variant.genotypes[i][0], variant.genotypes[i][1]])
-    if sum(alleles) >= nvote:
+    if sum(alleles) >= n_vote:
         anc = variant.ALT
-    elif len(alleles) - sum(alleles) >= nvote:
+        n_change = n_change + 1
+    elif len(alleles) - sum(alleles) >= n_vote:
         anc = variant.REF
     if isinstance(anc, list):
         anc = anc[0]
@@ -130,7 +132,9 @@ else:
 fh.write("get_ancestral_allel.py summary\n")
 fh.write("------------------------------\n")
 fh.write(f"outgroups: {outgroup}\n")
-fh.write(f"nvote: {nvote}\n")
-fh.write(f"N pass: {n_pass}\n")
-fh.write(f"N skip: {n_skip}\n")
+fh.write(f"vote(n): {n_vote}\n")
+fh.write(f"pass(n): {n_pass}\n")
+fh.write(f"change(n): {n_change}\n")
+fh.write(f"skip(n): {n_skip}\n")
+
 fh.close()

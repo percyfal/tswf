@@ -21,3 +21,12 @@ tsinfer/test:
   subset:
     include:
       population: ["CEU", "CHB", "YRI"]
+
+relate/test:
+  description: >-
+    Test run on chromosome 1, Out of Africa dataset
+  dataset: ooa
+  fmt: ooa_{chrom}_PASS
+  subset:
+    include:
+      population: ["CEU", "CHB", "YRI"]
