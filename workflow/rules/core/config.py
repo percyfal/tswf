@@ -8,7 +8,7 @@ from snakemake.utils import logger, validate
 from snakemake.io import _load_configfile
 
 
-WORKFLOW_DIR = workflow.current_basedir
+WORKFLOW_DIR = str(workflow.current_basedir)
 SCHEMA_DIR = os.path.realpath(
     os.path.join(WORKFLOW_DIR, os.pardir, os.pardir, "schemas")
 )
@@ -60,15 +60,20 @@ def add_gitinfo(config):
     try:
         with cd(workflow.basedir, logger):
             commit = sp.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
-            commit_short = sp.check_output(["git", "rev-parse", "--short", "HEAD"]).decode().strip()
+            commit_short = (
+                sp.check_output(["git", "rev-parse", "--short", "HEAD"])
+                .decode()
+                .strip()
+            )
             rc = sp.run(["git", "diff", "--quiet"])
             dirty = "-dirty" if rc.returncode == 1 else ""
             config["__workflow_commit__"] = commit_short + dirty
-            config["__workflow_commit_link__"] = f"https://github.com/NBISweden/manticore-smk/commit/{commit}"
+            config[
+                "__workflow_commit_link__"
+            ] = f"https://github.com/NBISweden/manticore-smk/commit/{commit}"
     except Exception as e:
         print(e)
         raise
-
 
 
 class PropertyDict(OrderedDict):
@@ -241,7 +246,9 @@ class Analysis(PropertyDict):
             if "include" in self["subset"]:
                 self["samples"] = self.samples.subset(**self.subset.include)
             if "exclude" in self["subset"]:
-                self["samples"] = self.samples.subset(**self.subset.exclude, invert=True)
+                self["samples"] = self.samples.subset(
+                    **self.subset.exclude, invert=True
+                )
         self._name = name
 
     @property
