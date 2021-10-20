@@ -1,22 +1,22 @@
-SM	population
-tsk_CHB_0	CHB
-tsk_CHB_1	CHB
-tsk_CHB_2	CHB
-tsk_CHB_3	CHB
-tsk_CHB_4	CHB
-tsk_CHB_5	CHB
-tsk_CEU_0	CEU
-tsk_CEU_1	CEU
-tsk_CEU_2	CEU
-tsk_CEU_3	CEU
-tsk_CEU_4	CEU
-tsk_CEU_5	CEU
-tsk_YRI_0	YRI
-tsk_YRI_1	YRI
-tsk_YRI_2	YRI
-tsk_YRI_3	YRI
-tsk_YRI_4	YRI
-tsk_YRI_5	YRI
-tsk_chimp	chimp
-tsk_gorilla	gorilla
-tsk_orangutan	orangutan
+SM	population	latitude	longitude
+tsk_1	CHB	39	116
+tsk_2	CHB	23	113
+tsk_3	CHB	29	106
+tsk_4	CHB	22	114
+tsk_5	CHB	31	121
+tsk_6	CHB	32	118
+tsk_7	CEU	40	14
+tsk_8	CEU	41	2
+tsk_9	CEU	52	13
+tsk_10	CEU	70	23
+tsk_11	CEU	34	-118
+tsk_12	CEU	40	-73
+tsk_13	YRI	6	3
+tsk_14	YRI	7	4
+tsk_15	YRI	8	1
+tsk_16	YRI	9	1.5
+tsk_17	YRI	8	4
+tsk_18	YRI	7.3	3.6
+tsk_19	chimp
+tsk_20	gorilla
+tsk_21	orangutan

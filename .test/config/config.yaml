@@ -4,9 +4,9 @@ populations: "resources/populations.tsv"
 derive_aa:
   method: 'vote'
   outgroups:
-    - tsk_chimp
-    - tsk_gorilla
-    - tsk_orangutan
+    - tsk_19 # Chimp
+    - tsk_20 # Gorilla
+    - tsk_21 # Orangutan
   options:
     n: 4
 
