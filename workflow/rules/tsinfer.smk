@@ -71,9 +71,11 @@ rule tsinfer_tsdate:
 rule tsinfer_gnn:
     """Convert tree sequence to gnn"""
     output:
-        gnn="{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.gnn.csv",
+        gnn="{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.gnn.{mode}.csv",
     input:
         trees=__INTERIM__ / "{analysis}/{dataset}/{prefix}{chrom}{suffix}.trees",
+    wildcard_constraints:
+        mode="(individual|population)",
     threads: 1
     resources:
         mem_mb=xx_mem_mb,
@@ -82,7 +84,7 @@ rule tsinfer_gnn:
     envmodules:
         *cfg.ruleconf("tsinfer_gnn").params("envmodules"),
     log:
-        "logs/{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.log",
+        "logs/{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.gnn.{mode}.log",
     script:
         "../scripts/tsinfer-gnn.py"
 
@@ -90,15 +92,15 @@ rule tsinfer_gnn:
 rule tsinfer_eda:
     """Make EDA document based on bokeh plots"""
     output:
-        html="{results}/{analysis}/{dataset}/eda.html",
+        html="{results}/{analysis}/{dataset}/{mode}.eda.html",
     input:
-        unpack(tsinfer_eda_input)
+        unpack(tsinfer_eda_input),
     params:
         fmt=fmt,
     conda:
         "../envs/plotting.yaml"
     log:
-        "logs/{results}/{analysis}/{dataset}/eda.log",
+        "logs/{results}/{analysis}/{dataset}/{mode}.eda.log",
     threads: 1
     script:
         "../scripts/tsinfer-eda.py"
