@@ -10,7 +10,8 @@ from multiprocessing import Pool
 from tqdm import tqdm
 import tskit
 import matplotlib
-matplotlib.use('Agg')  # NOQA
+
+matplotlib.use("Agg")  # NOQA
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1.inset_locator import InsetPosition, inset_axes
 import seaborn as sns
@@ -37,7 +38,7 @@ def local_gnn(ts, focal, reference_sets):
     for j in range(K):
         sample_count[reference_sets[j], j] = 1
 
-    for t, ((left, right),edges_out, edges_in) in tqdm(enumerate(ts.edge_diffs())):
+    for t, ((left, right), edges_out, edges_in) in tqdm(enumerate(ts.edge_diffs())):
         for edge in edges_out:
             parent[edge.child] = -1
             v = edge.parent
@@ -84,8 +85,7 @@ def group_samples_ts(ts, by="population"):
     for population in ts.populations():
         md = json.loads(population.metadata.decode())
         key = md[by]
-        sample_group_set_map[key].extend(list(ts.samples(
-            population=population.id)))
+        sample_group_set_map[key].extend(list(ts.samples(population=population.id)))
     groups = list(sample_group_set_map.keys())
     sample_group_sets = [sample_group_set_map[k] for k in groups]
     return groups, sample_group_sets
@@ -95,7 +95,9 @@ def get_samples(sample_data, population=None):
     if population is None:
         pop_index = np.array(range(len(sample_data.individuals_population)))
     else:
-        pop_index = np.where(np.array(sample_data.individuals_population) == population)[0]
+        pop_index = np.where(
+            np.array(sample_data.individuals_population) == population
+        )[0]
     individuals = np.array(list(sample_data.individuals()))[pop_index]
     samples = list()
     for ind in individuals:
@@ -107,8 +109,7 @@ def group_samples(sample_data, by="population"):
     sample_group_set_map = collections.defaultdict(list)
     for pop in sample_data.populations():
         key = pop.metadata[by]
-        sample_group_set_map[key].extend(
-            get_samples(sample_data, pop.id))
+        sample_group_set_map[key].extend(get_samples(sample_data, pop.id))
     groups = list(sample_group_set_map.keys())
     sample_group_sets = [sample_group_set_map[k] for k in groups]
     return groups, sample_group_sets
@@ -145,7 +146,9 @@ def make_colour_map(groups):
 
 
 def plot_sample_gnn(df_all, groups, outfile, sample, title=None):
-    gs = matplotlib.gridspec.GridSpec(2, 2, height_ratios=[1, 1], hspace=0.6, width_ratios=[5, 1])
+    gs = matplotlib.gridspec.GridSpec(
+        2, 2, height_ratios=[1, 1], hspace=0.6, width_ratios=[5, 1]
+    )
     fig = plt.figure(figsize=(17, 4))
     _, ax_main = plt.subplots()
     ax_upper = plt.subplot(gs[0, 0])
@@ -161,22 +164,28 @@ def plot_sample_gnn(df_all, groups, outfile, sample, title=None):
             # Stack bar at position left, height = df[group],
             # width = width, bottom = cumulative total
             ax.bar(
-                left, df[group], bottom=total, width=width, align="edge",
-                label=group, color=colours[group])
+                left,
+                df[group],
+                bottom=total,
+                width=width,
+                align="edge",
+                label=group,
+                color=colours[group],
+            )
             total += df[group]
         ax.set_title("{} haplotype ({})".format(sample, j + 1))
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_xlim(0, df.right.max())
         ax.set_ylim(0, 1)
-        ax.axis('off')
+        ax.axis("off")
 
     # Add legende
-    ax_right = plt.subplot(gs[0,1])
+    ax_right = plt.subplot(gs[0, 1])
     ax_right.legend()
     # Save figure
     print("Saving figure")
-    plt.savefig(outfile, bbox_inches='tight', dpi=400)
+    plt.savefig(outfile, bbox_inches="tight", dpi=400)
 
 
 def _mean_cluster(df, zscore=True):
@@ -184,11 +193,14 @@ def _mean_cluster(df, zscore=True):
         for col in list(df):
             df[col] = scipy.stats.zscore(df[col])
 
-    row_linkage = scipy.cluster.hierarchy.linkage(df, method="average", optimal_ordering=True)
+    row_linkage = scipy.cluster.hierarchy.linkage(
+        df, method="average", optimal_ordering=True
+    )
 
     order = scipy.cluster.hierarchy.leaves_list(row_linkage)
     x_pop = df.index.values[order]
     return row_linkage, df[x_pop]
+
 
 def plot_mean_cluster(df, outfile=None, title=None, zscore=True):
     row_linkage, df = _mean_cluster(df, zscore)
@@ -197,10 +209,10 @@ def plot_mean_cluster(df, outfile=None, title=None, zscore=True):
     cg.fig.suptitle(title)
     for tick in cg.ax_heatmap.get_xticklabels():
         tick.set_rotation(-45)
-        tick.set_ha('left')
+        tick.set_ha("left")
         tick.set_rotation_mode("anchor")
     if outfile is not None:
-        plt.savefig(outfile, bbox_inches='tight', dpi=400)
+        plt.savefig(outfile, bbox_inches="tight", dpi=400)
 
 
 def plot_gnn(df, outfile, groups, sample_group_sets, title=None):
@@ -221,7 +233,7 @@ def plot_gnn(df, outfile, groups, sample_group_sets, title=None):
     A = A[:, index]
 
     margin = 0.05
-    width = (1.-2.*margin)/len(groups)
+    width = (1.0 - 2.0 * margin) / len(groups)
 
     fig, ax = plt.subplots(1, 1, figsize=(17, 3))
     # Insert extra x coordinate between groups; also order according to group
@@ -230,19 +242,25 @@ def plot_gnn(df, outfile, groups, sample_group_sets, title=None):
     xticks = []
     for name, group in df.groupby(level=0):
         x.extend(np.arange(i, i + len(group)))
-        xticks.append(float(i + int(len(group)/2)))
+        xticks.append(float(i + int(len(group) / 2)))
         i = i + len(group) + 1
 
     for j, group in enumerate(groups):
         ax.bar(
-            x, A[j], bottom=np.sum(A[:j, :], axis=0), label=group,
-            width=1, color=colours[group], align="edge")
+            x,
+            A[j],
+            bottom=np.sum(A[:j, :], axis=0),
+            label=group,
+            width=1,
+            color=colours[group],
+            align="edge",
+        )
     ax.set_xlim(0, max(x))
     ax.set_ylim(0, 1)
     ax.set_xticks(np.array(xticks))
-    ax.set_xticklabels(groups, rotation='vertical')
+    ax.set_xticklabels(groups, rotation="vertical")
     ax.set_yticks([])
     ax.set_title(title)
-    #ax.legend(groups)
+    # ax.legend(groups)
     # ax.axis('off')
-    plt.savefig(outfile, bbox_inches='tight', dpi=400)
+    plt.savefig(outfile, bbox_inches="tight", dpi=400)

@@ -3,7 +3,14 @@
 import pandas as pd
 import tsinfer
 
-from common import plot_sample_gnn, make_colour_map, group_samples_by_populations, plot_mean_cluster, plot_gnn, group_samples
+from common import (
+    plot_sample_gnn,
+    make_colour_map,
+    group_samples_by_populations,
+    plot_mean_cluster,
+    plot_gnn,
+    group_samples,
+)
 
 # Load samples
 samples = tsinfer.load(snakemake.input.samples)

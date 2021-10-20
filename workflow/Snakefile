@@ -3,14 +3,19 @@ include: "rules/tsinfer.smk"
 include: "rules/relate.smk"
 include: "rules/ancestral.smk"
 
+
 report: "report/workflow.rst"
+
 
 # Allow users to fix the underlying OS via singularity.
 container: "docker://continuumio/miniconda3"
 
 
 rule all:
-    input: unpack(all)
+    input:
+        unpack(all),
+
 
 rule all_tsinfer:
-    input: all_tsinfer
+    input:
+        all_tsinfer,

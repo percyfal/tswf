@@ -3,8 +3,9 @@
 import scipy.stats
 import scipy.cluster.hierarchy
 
+
 def cluster_gnn_map(X, by="population"):
-    '''Cluster GNN values.
+    """Cluster GNN values.
 
     Args:
         X (:class:`~pd.DataFrame`) :
@@ -13,12 +14,14 @@ def cluster_gnn_map(X, by="population"):
             population
 
 
-    '''
+    """
     # Zscore normalise
     for col in list(X):
         X[col] = scipy.stats.zscore(X[col])
 
-    row_linkage = scipy.cluster.hierarchy.linkage(X, method="average", optimal_ordering=True)
+    row_linkage = scipy.cluster.hierarchy.linkage(
+        X, method="average", optimal_ordering=True
+    )
     order = scipy.cluster.hierarchy.leaves_list(row_linkage)
     x_pop = X.index.values[order]
     X = X.reindex(x_pop)

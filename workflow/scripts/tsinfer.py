@@ -4,18 +4,20 @@ import re
 import os
 import sys
 import math
+
 try:
     import tsinfer
 except ModuleNotFoundError as e:
-    raise(ModuleNotFoundError("No module named 'tsinfer'"))
+    raise (ModuleNotFoundError("No module named 'tsinfer'"))
 import cyvcf2
 import json as json
 import pandas as pd
 from tqdm import tqdm
 import logging
-FORMAT = '%(levelname)s:tsinfer:%(asctime)-15s %(message)s'
+
+FORMAT = "%(levelname)s:tsinfer:%(asctime)-15s %(message)s"
 logging.basicConfig(format=FORMAT)
-logger = logging.getLogger('tsinfer')
+logger = logging.getLogger("tsinfer")
 
 
 inputvcf = snakemake.input.vcf
@@ -92,7 +94,7 @@ def add_populations(vcf, samples):
     for pop in sorted(set(sample_pops)):
         md = df_pop.loc[pop]
         md = {k: v for k, v in md.iteritems()}
-        md['population'] = pop
+        md["population"] = pop
         pop_lookup[pop] = samples.add_population(metadata=md)
     return [pop_lookup[pop] for pop in sample_pops]
 
@@ -103,6 +105,7 @@ def add_diploid_individuals(vcf, samples, populations):
         md = {"name": name, "SM": name}
         md.update(dict(df_meta.loc[name]))
         samples.add_individual(ploidy=2, metadata=md, population=population)
+
 
 def init_vcf(fn, samplenames):
     vcf = cyvcf2.VCF(fn)
