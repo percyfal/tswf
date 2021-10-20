@@ -8,15 +8,26 @@ import itertools
 import json
 from bokeh.transform import linear_cmap, transform
 from bokeh.palettes import Set3, Viridis256
-from bokeh.models import LinearColorMapper, ColumnDataSource, HoverTool, ColorBar, BasicTicker, CategoricalScale, CategoricalAxis
+from bokeh.models import (
+    LinearColorMapper,
+    ColumnDataSource,
+    HoverTool,
+    ColorBar,
+    BasicTicker,
+    CategoricalScale,
+    CategoricalAxis,
+    GeoJSONDataSource,
+    BoxSelectTool,
+)
 from bokeh.models.ranges import FactorRange
 from bokeh.layouts import row, column
 from bokeh import plotting
 from stats import cluster_gnn_map
-    
+
 
 def _get_palette(cmap=Set3[12], n=12, start=0, end=1):
     import matplotlib, numpy as np
+
     linspace = np.linspace(start, end, n)
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list("customcmap", cmap)
     palette = cmap(linspace)
@@ -29,7 +40,12 @@ class Figure:
         self._data = data
         self._fig = None
         self._kw = kw
-        
+        self._source = None
+
+    @property
+    def source(self):
+        return self._source
+
 
 class MatrixFigure(Figure):
     def __init__(self, *args, **kw):
@@ -63,47 +79,58 @@ class MatrixFigure(Figure):
         return colors, labels
 
     def _add_dendrogram(self, padding, axis=0):
-        '''Add dendrogram'''
-        results = scipy.cluster.hierarchy.dendrogram(self._data.linkage(axis=axis),
-                                                     no_plot=True)
+        """Add dendrogram"""
+        results = scipy.cluster.hierarchy.dendrogram(
+            self._data.linkage(axis=axis), no_plot=True
+        )
         if axis == 0:
             ymax = float(len(self._data.linkage(axis=axis))) + 0.5
             xmax = padding
         else:
             ymax = padding
             xmax = float(len(self._data.linkage(axis=axis))) + 0.5
-            
-        ycoord = pd.DataFrame(results['icoord'])
-        ycoord = ycoord * (ymax / ycoord.max().max())
-        ycoord = - ycoord.values + ymax + 0.5
 
-        xcoord = pd.DataFrame(results['dcoord'])
+        ycoord = pd.DataFrame(results["icoord"])
+        ycoord = ycoord * (ymax / ycoord.max().max())
+        ycoord = -ycoord.values + ymax + 0.5
+
+        xcoord = pd.DataFrame(results["dcoord"])
         xcoord = xcoord * (xmax / xcoord.max().max()) - xmax
         xcoord = xcoord.values
-        
+
         for x, y in zip(xcoord, ycoord):
             x = list(map(lambda z: -z, x))
-            self._fig.line(x=x, y=y, line_color='black')
-            
+            self._fig.line(x=x, y=y, line_color="black")
 
-        
-    def heatmap(self, low=None, high=None, palette="Viridis256",
-                row_colors=None, col_colors=None, color_bar=True,
-                col_cluster=False, row_cluster=False, cbar_title=None,
-                dendrogram=True, dendrogram_ratio=.2, *args, **kwargs):
-        '''Make heatmap of data, possibly with dendrogram
+    def heatmap(
+        self,
+        low=None,
+        high=None,
+        palette="Viridis256",
+        row_colors=None,
+        col_colors=None,
+        color_bar=True,
+        col_cluster=False,
+        row_cluster=False,
+        cbar_title=None,
+        dendrogram=True,
+        dendrogram_ratio=0.2,
+        *args,
+        **kwargs,
+    ):
+        """Make heatmap of data, possibly with dendrogram
 
         Args:
             data (:class:`~pd.DataFrame`) :
                 A DataFrame matrix with 'z' values to plot
- 
+
             palette (str or seq[color], optional) :
                 A palette to use to colormap z
 
         Any additional keyword arguments are passed to
         :func:`bokeh.plotting.rect`
 
-        '''
+        """
         data = self._data
         padding_cols, padding_rows = 0, 0
         row_colors, row_labels = self._process_colors(row_colors)
@@ -113,6 +140,7 @@ class MatrixFigure(Figure):
             data.cluster()
         if col_cluster:
             data.cluster(axis=1)
+
         def _factors(labels, cluster, axis=0):
             padding = 0
             factors = list(data.linkage_index(axis))
@@ -127,19 +155,19 @@ class MatrixFigure(Figure):
         col_factors, col_padding = _factors(col_labels, col_cluster, axis=1)
 
         # Setup ranges
-        if 'x_range' not in self._kw.keys():
-            self._kw['x_range'] = FactorRange(factors=row_factors)
-        if 'y_range' not in self._kw.keys():
-            self._kw['y_range'] = FactorRange(factors=list(reversed(col_factors)))
+        if "x_range" not in self._kw.keys():
+            self._kw["x_range"] = FactorRange(factors=row_factors)
+        if "y_range" not in self._kw.keys():
+            self._kw["y_range"] = FactorRange(factors=list(reversed(col_factors)))
         self._fig = plotting.figure(**self._kw)
 
         # Apparently reordering is necessary? I thought it would
         # suffice to set the factors on the x/y ranges
         datastack = data.reorder().data.stack()
         # Recall: want to reflect the matrix so y/x shift
-        datastack.index.names = ['y', 'x']
-        df = pd.DataFrame(datastack, columns=['z']).reset_index()
-        source = ColumnDataSource(df)
+        datastack.index.names = ["y", "x"]
+        df = pd.DataFrame(datastack, columns=["z"]).reset_index()
+        self._source = ColumnDataSource(df)
 
         # Setup color mapper
         if low is None:
@@ -148,14 +176,21 @@ class MatrixFigure(Figure):
             high = df.z.max()
         color_mapper = LinearColorMapper(palette=palette, low=low, high=high)
 
-        # Make heatmap 
-        self._fig.rect(x='x', y='y',
-                       width=1, height=1,
-                       line_color='black', line_alpha=0.2, alpha=0.8,
-                       source=source, fill_color=transform('z', color_mapper),
-                       *args, **kwargs)
+        # Make heatmap
+        self._fig.rect(
+            x="x",
+            y="y",
+            width=1,
+            height=1,
+            line_color="black",
+            line_alpha=0.2,
+            alpha=0.8,
+            source=self.source,
+            fill_color=transform("z", color_mapper),
+            *args,
+            **kwargs,
+        )
 
-                             
         # Add dendrogram
         if dendrogram:
             if row_cluster:
@@ -164,22 +199,21 @@ class MatrixFigure(Figure):
                 # FIXME: currently not correct
                 # self._add_dendrogram(col_padding, axis=1)
                 pass
-            
-            
+
         # Setup hover tooltips
         hover = HoverTool()
-        hover.tooltips = [
-            ("Row", "@y"),
-            ("Column", "@x"),
-            ("Value", "@z")
-        ]
+        hover.tooltips = [("Row", "@y"), ("Column", "@x"), ("Value", "@z")]
         self._fig.add_tools(hover)
 
         # Add colorbar
         if color_bar:
-            color_bar = ColorBar(color_mapper=color_mapper, location=(1,0),
-                                 ticker=BasicTicker(), border_line_color=None,
-                                 title=cbar_title)
+            color_bar = ColorBar(
+                color_mapper=color_mapper,
+                location=(1, 0),
+                ticker=BasicTicker(),
+                border_line_color=None,
+                title=cbar_title,
+            )
             self._fig.add_layout(color_bar, "right")
 
         # Add group colors
@@ -188,67 +222,133 @@ class MatrixFigure(Figure):
             row_colors = row_colors.reset_index()
             row_colors.columns = ["y", "x", "color"]
             self._fig.rect(
-                x='x', y='y', fill_color='color',
-                line_color=None, line_alpha=0.2, alpha=0.8,
-                source=row_colors, width=.6, height=1)
+                x="x",
+                y="y",
+                fill_color="color",
+                line_color=None,
+                line_alpha=0.2,
+                alpha=0.8,
+                source=row_colors,
+                width=0.6,
+                height=1,
+            )
         # Add col colors; transpose may be needed
         if col_colors is not None:
             col_colors = col_colors.stack()
             col_colors = col_colors.reset_index()
             col_colors.columns = ["y", "x", "color"]
             self._fig.rect(
-                x='x', y='y', fill_color='color',
-                line_color=None, line_alpha=0.2, alpha=0.8,
-                source=col_colors, width=.6, height=1)
-
+                x="x",
+                y="y",
+                fill_color="color",
+                line_color=None,
+                line_alpha=0.2,
+                alpha=0.8,
+                source=col_colors,
+                width=0.6,
+                height=1,
+            )
 
         # Configure axes
         self._fig.axis.major_tick_line_color = None
         self._fig.axis.minor_tick_line_color = None
-        self._fig.xaxis.major_label_overrides = dict(zip(row_factors, map(lambda x: '' if x.startswith("__") else x, row_factors)))
+        self._fig.xaxis.major_label_overrides = dict(
+            zip(
+                row_factors, map(lambda x: "" if x.startswith("__") else x, row_factors)
+            )
+        )
         self._fig.xaxis.major_label_orientation = 1.0
         self._fig.axis.axis_line_color = None
         self._fig.grid.grid_line_color = None
         self._fig.outline_line_color = None
         return self._fig
 
-
-    def vbar_stack(self, row_colors=None, ):
+    def vbar_stack(self, row_colors=None, factor_levels=None, groups=None):
         data = self._data.copy().data
         # Factor is the index
-        levels = list(data.index.names)
-        factors = list(data.index)
-        groups = sorted(data.columns)
+        levels = data.index.names
+        if factor_levels is None:
+            factor_levels = list(range(len(data.index.names)))
+        factors = list(tuple([x[i] for i in factor_levels]) for x in data.index)
+        if groups is None:
+            groups = sorted(data.columns)
         data.reset_index(inplace=True)
         data["x"] = factors
-        source = ColumnDataSource(data)
+        self._source = ColumnDataSource(data)
 
-        if 'x_range' not in self._kw.keys():
-            self._kw['x_range'] = FactorRange(*factors)
+        if "x_range" not in self._kw.keys():
+            self._kw["x_range"] = FactorRange(*factors)
         self._fig = plotting.figure(**self._kw)
-        self._fig.vbar_stack(groups, source=source, x='x', color=_get_palette(n=len(groups)),
-                             legend_label=groups, width=1,
-                             line_color='black', line_alpha=0.2, line_width=0.5)
-        self._fig.add_layout(self._fig.legend[0], 'right')
+        self._fig.vbar_stack(
+            groups,
+            source=self.source,
+            x="x",
+            color=_get_palette(n=len(groups)),
+            legend_label=groups,
+            width=1,
+            line_color="black",
+            line_alpha=0.2,
+            line_width=0.5,
+        )
+        self._fig.add_layout(self._fig.legend[0], "right")
 
         hover = HoverTool()
         hover.tooltips = list(map(lambda x: (x[0], f"@{x[1]}"), zip(levels, levels)))
-        hover.tooltips.extend(list(map(lambda x: (x[0], f"@{x[1]}{{%0.1f}}"), zip(groups, groups))))
+        hover.tooltips.extend(
+            list(map(lambda x: (x[0], f"@{x[1]}{{%0.1f}}"), zip(groups, groups)))
+        )
         self._fig.add_tools(hover)
+        self._fig.add_tools(BoxSelectTool())
 
         self._fig.axis.major_tick_line_color = None
         self._fig.axis.minor_tick_line_color = None
         self._fig.xaxis.group_label_orientation = 1.0
         self._fig.xaxis.subgroup_label_orientation = 1.0
         self._fig.xaxis.major_label_orientation = 1.0
-        self._fig.xaxis.major_label_text_font_size = '0pt'
+        self._fig.xaxis.major_label_text_font_size = "0pt"
         self._fig.axis.axis_line_color = None
         self._fig.grid.grid_line_color = None
-        self._fig.outline_line_color = 'black'
+        self._fig.outline_line_color = "black"
 
         return self._fig
-        
-    
+
+    def world_map(self, row_colors=None):
+        # FIXME: should not be set here but rather in calling script
+        self._kw["title"] = "World map"
+        self._kw.pop("y_axis_label", None)
+        self._kw.pop("x_range", None)
+
+        self._fig = plotting.figure(**self._kw)
+        from data import natural_earth
+
+        df = natural_earth()
+        geosource = GeoJSONDataSource(geojson=json.dumps(natural_earth()))
+        hover = HoverTool()
+        # FIXME: these should not be hardcoded. Also would want to
+        # have separate hover tools for patches and samples
+        hover.tooltips = [
+            ("country", "@country"),
+            ("sample_node_population", "@sample_node_population"),
+            ("sample_name", "@sample_name"),
+        ]
+        self._fig.add_tools(hover)
+        self._fig.add_tools(BoxSelectTool())
+        self._fig.xgrid.grid_line_color = None
+        self._fig.ygrid.grid_line_color = None
+        self._fig.patches(
+            "xs",
+            "ys",
+            source=geosource,
+            fill_alpha=0.1,
+            line_width=0.5,
+            line_color="black",
+        )
+        self._fig.circle(
+            x="longitude", y="latitude", size=5, fill_alpha=0.5, source=self.source
+        )
+        return self._fig
+
+
 class Matrix:
     def __init__(self, data=None, *args, **kw):
         self.data = data
@@ -260,7 +360,7 @@ class Matrix:
     @property
     def is_square(self):
         return self.data.shape[0] == self.data.shape[1]
-        
+
     def order(self, axis=0):
         """Return order of axis indices. Will change if clustering"""
         if axis == 1:
@@ -271,7 +371,7 @@ class Matrix:
         """Return linkage index"""
         # By default return other axis if no linkage and square matrix
         if self.linkage(axis) is None and self.is_square:
-            if self.linkage(1-axis) is not None:
+            if self.linkage(1 - axis) is not None:
                 axis = 1 - axis
         order = self.order(axis=axis)
         if axis == 0:
@@ -284,7 +384,7 @@ class Matrix:
             return self.row_linkage
         elif axis == 1:
             return self.col_linkage
-        
+
     @property
     def row_order(self):
         if self.row_linkage is None:
@@ -336,7 +436,7 @@ class Matrix:
     @rowname.setter
     def rowname(self, value):
         self._data.index.name = value
-    
+
     @property
     def colname(self):
         return self._data.columns.name
@@ -344,7 +444,7 @@ class Matrix:
     @colname.setter
     def colname(self, value):
         self._data.columns.name = value
-    
+
     @property
     def row_linkage(self):
         return self._row_linkage
@@ -393,9 +493,8 @@ class Matrix:
             obj.data = data.T
         return obj
 
-
     def _zscore(self, axis=1):
-        '''Standardize mean and variance. 0=rows, 1=columns'''
+        """Standardize mean and variance. 0=rows, 1=columns"""
         if axis == 1:
             zscore = self.data.copy()
         else:
@@ -413,32 +512,30 @@ class Matrix:
             return self._zscore(axis=axis)
         return self
 
-
-    def cluster(self, axis=0, method="average", metric="euclidean",
-                **kw):
+    def cluster(self, axis=0, method="average", metric="euclidean", **kw):
         optimal_ordering = kw.pop("optimal_ordering", True)
-        return self._calculate_linkage(axis=axis, method=method,
-                                       optimal_ordering=optimal_ordering, **kw)
-        
-    def _calculate_linkage(self, axis=0, method="average",
-                          optimal_ordering=True, **kw):
+        return self._calculate_linkage(
+            axis=axis, method=method, optimal_ordering=optimal_ordering, **kw
+        )
+
+    def _calculate_linkage(self, axis=0, method="average", optimal_ordering=True, **kw):
         data = self.data.copy()
         if axis == 1:
             data = data.T
-        linkage = scipy.cluster.hierarchy.linkage(data, method=method,
-                                                  optimal_ordering=optimal_ordering, **kw)
+        linkage = scipy.cluster.hierarchy.linkage(
+            data, method=method, optimal_ordering=optimal_ordering, **kw
+        )
         if axis == 0:
             self.row_linkage = linkage
         else:
             self.col_linkage = linkage
         return self
 
-    
+
 class TSData:
     def __init__(self, ts, *args, **kw):
         self._ts = ts
         self._data = None
-
 
     @property
     def data(self):
@@ -460,29 +557,27 @@ class TSData:
         for population in self.ts.populations():
             md = json.loads(population.metadata.decode())
             key = md[by]
-            sample_group_set_map[key].extend(list(self.ts.samples(
-                population=population.id)))
+            sample_group_set_map[key].extend(
+                list(self.ts.samples(population=population.id))
+            )
         groups = list(sample_group_set_map.keys())
         sample_group_sets = [sample_group_set_map[k] for k in groups]
         return groups, sample_group_sets
 
-    
     def fst(self, by="population", **kw):
         groups, sample_group_sets = self._group_samples(by=by)
         k = len(list(self.ts.populations()))
         i = list(itertools.product(list(range(k)), list(range(k))))
         fst = self.ts.Fst(sample_group_sets, indexes=i, **kw)
-        df = pd.DataFrame(np.reshape(fst, newshape=(k, k)),
-                          columns=groups, index=groups)
+        df = pd.DataFrame(
+            np.reshape(fst, newshape=(k, k)), columns=groups, index=groups
+        )
         df.index.name = by
         df.columns.name = by
         self.data = Matrix(df)
         return self
 
-    
 
 def figure(data, **kwargs):
     if isinstance(data, Matrix):
         return MatrixFigure(data, **kwargs)
-
-

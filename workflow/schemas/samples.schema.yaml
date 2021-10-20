@@ -11,6 +11,13 @@ properties:
   name:
     type: string
     description: alternative sample name
+  latitude:
+    type: ['null', number]
+    description: sampling latitude
+  longitude:
+    type: ['null', number]
+    description: sampling longitude
+
 
 patternProperties:
   '[a-zA-Z0-9_\.]+':

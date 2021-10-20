@@ -11,7 +11,16 @@ import numpy as np
 from collections import defaultdict
 from bokeh.resources import CDN
 from bokeh.embed import file_html, components
-from bokeh.models import Paragraph, Div, Panel, Tabs, Dropdown, CustomJS, Select
+from bokeh.models import (
+    Paragraph,
+    Div,
+    Panel,
+    Tabs,
+    Dropdown,
+    CustomJS,
+    Select,
+    GeoJSONDataSource,
+)
 from bokeh.document import Document
 from bokeh.layouts import row, column
 from bokeh.io.doc import curdoc
@@ -20,11 +29,12 @@ from common import group_samples_ts
 from snakemake.io import regex
 
 # Main width
-docwidth=1200
+docwidth = 1200
 doc = Document()
 # Add some general information
 
-d = Div(text="""
+d = Div(
+    text="""
 
 <h2>About</h2>
 
@@ -76,17 +86,22 @@ in a completly different environment.</p>
 
 
 
-""", width=1000)
+""",
+    width=1000,
+)
 doc.add_root(d)
 
-
-popkey = "Species"
+# FIXME! One should be able to use different key in plot.
+popkey = "sample_node_population"
 
 gnn = defaultdict(dict)
 treefiles = defaultdict(dict)
 
 rgx = re.compile(re.sub("\$$", "", regex(snakemake.params.fmt)))
 
+individuals = None
+first = True
+has_lng_lat = False
 for csvfile, treefile in zip(snakemake.input.csv, snakemake.input.trees):
     bn = os.path.basename(csvfile)
     try:
@@ -94,46 +109,106 @@ for csvfile, treefile in zip(snakemake.input.csv, snakemake.input.trees):
     except AttributeError:
         raise
     df = pd.read_csv(csvfile)
-    df["Sample"] = list(map(lambda x: f"{x[0]}/{x[1]}", zip(df.Individual, list(map(int, df.Individual.duplicated())))))
-    df = df.set_index(["Species", "Sample", "Sample node", "Individual"]).droplevel(["Sample node", "Individual"])
+    df = df.set_index(
+        [
+            "sample_node_population",
+            "sample_node_population_id",
+            "sample_name_unique",
+            "sample_node_id",
+            "sample_name",
+        ]
+    ).droplevel(["sample_node_id", "sample_node_population_id"])
     gnn[k] = df
     treefiles[k] = treefile
+    # Parse first tree file for metadata
+    if first:
+        ts = tskit.load(treefile)
+        individuals = list(ts.individuals())
+        if any(
+            ("longitude" in json.loads(ind.metadata.decode()).keys())
+            or ("latitude" in json.loads(ind.metadata.decode()).keys())
+            for ind in individuals
+        ):
+            has_lng_lat = True
 
+gnn_all = pd.concat(
+    gnn.values(), keys=["gnn-{}".format(i + 1) for i in range(len(gnn.keys()))]
+).mean(level=[1, 2, 3])
 
-gnn_all = pd.concat(gnn.values(), keys=['gnn-{}'.format(i+1) for i in
-                                        range(len(gnn.keys()))]).mean(level=[1, 2])
+gnn_all = gnn_all.sort_values(by=gnn_all.columns.to_list(), ascending=False)
+
+# Add longitude, latitude to gnn_all
+if has_lng_lat:
+    gnn_all["longitude"] = None
+    gnn_all["latitude"] = None
+    for ind in individuals:
+        md = json.loads(ind.metadata.decode())
+        sample = md["SM"]
+        lng = md["longitude"]
+        lat = md["latitude"]
+        gnn_all.longitude.loc[:, :, sample] = lng
+        gnn_all.latitude.loc[:, :, sample] = lat
+
 
 # Make list of heatmaps
-def _heatmap(infile, gnn, title="GNN clustering: {infile}",
-             cbar_title="GNN proportion (Z-score)", plot_height=500,
-             plot_width=700, visible=True):
+def _heatmap(
+    infile,
+    gnn,
+    title="GNN clustering: {infile}",
+    cbar_title="GNN proportion (Z-score)",
+    plot_height=500,
+    plot_width=700,
+    visible=True,
+):
     dfg = bokehutils.Matrix(gnn.groupby(popkey).mean())
     dfg.rescale()
-    f = bokehutils.figure(dfg, plot_height=plot_height,
-                          plot_width=plot_width,
-                          y_axis_location="right",
-                          toolbar_location="right",
-                          title=title.format(infile=infile),
-                          name=infile, visible=visible)
+    f = bokehutils.figure(
+        dfg,
+        plot_height=plot_height,
+        plot_width=plot_width,
+        y_axis_location="right",
+        toolbar_location="right",
+        title=title.format(infile=infile),
+        name=infile,
+        visible=visible,
+    )
 
     hm = f.heatmap(row_cluster=True, row_colors=True, cbar_title=cbar_title)
     return hm
 
+
 def _fst_heatmap(key, data, plot_width=700, plot_height=500, visible=True):
-    f = bokehutils.figure(data, plot_width=plot_width,
-                          plot_height=plot_height, title=f"Mean chromosome fst: {key}",
-                          visible=visible, name=key)
-    return f.heatmap(cbar_title="Fst", row_colors=True, row_cluster=True, col_cluster=True, dendrogram=False)
+    f = bokehutils.figure(
+        data,
+        plot_width=plot_width,
+        plot_height=plot_height,
+        title=f"Mean chromosome fst: {key}",
+        visible=visible,
+        name=key,
+    )
+    return f.heatmap(
+        cbar_title="Fst",
+        row_colors=True,
+        row_cluster=True,
+        col_cluster=True,
+        dendrogram=False,
+    )
 
 
 # GNN prop plot
 def _gnnprop(infile, gnn, plot_width=1800, plot_height=400, visible=True):
-    f = bokehutils.figure(bokehutils.Matrix(gnn),
-                          plot_width=plot_width,
-                          plot_height=plot_height,
-                          title=f"GNN proportion: {infile}",
-                          y_axis_label="GNN proportion", name=infile, visible=visible)
-    return f.vbar_stack()
+    f = bokehutils.figure(
+        bokehutils.Matrix(gnn),
+        plot_width=plot_width,
+        plot_height=plot_height,
+        title=f"GNN proportion: {infile}",
+        y_axis_label="GNN proportion",
+        name=infile,
+        visible=visible,
+    )
+    groups = [x for x in sorted(gnn.columns) if not x in ["longitude", "latitude"]]
+    return f.vbar_stack(factor_levels=[0, 1], groups=groups), f
+
 
 # Need to parallelize if ts inference
 def _fst(key, plot_width=700, plot_height=500, visible=True):
@@ -142,7 +217,17 @@ def _fst(key, plot_width=700, plot_height=500, visible=True):
     ts = tskit.load(treefile)
     tsdata = bokehutils.TSData(ts)
     tsdata.fst()
-    return _fst_heatmap(key, tsdata.data, plot_width=plot_width, plot_height=plot_height, visible=visible), tsdata.data
+    return (
+        _fst_heatmap(
+            key,
+            tsdata.data,
+            plot_width=plot_width,
+            plot_height=plot_height,
+            visible=visible,
+        ),
+        tsdata.data,
+    )
+
 
 hm = {}
 gnnprop = {}
@@ -152,20 +237,27 @@ for k in list(gnn.keys()):
     print("Analysing ", k)
     v = gnn[k]
     hm[k] = _heatmap(k, v)
-    gnnprop[k] = _gnnprop(k, v)
+    gnnprop[k], _ = _gnnprop(k, v)
     fst[k], fst_data[k] = _fst(k)
 
 
 # Add ALL chromosome results
-fst_all = bokehutils.Matrix(pd.concat([v.data for v in fst_data.values()],
-                    keys=['fst-{}'.format(i+1) for i in range(len(fst_data.keys()))]).mean(level=1))
+fst_all = bokehutils.Matrix(
+    pd.concat(
+        [v.data for v in fst_data.values()],
+        keys=["fst-{}".format(i + 1) for i in range(len(fst_data.keys()))],
+    ).mean(level=1)
+)
 
 fig_hm_all = _heatmap("All chromosomes", gnn_all, visible=True)
-fig_gnnprop_all = _gnnprop("All chromosomes", gnn_all, visible=True)
+fig_gnnprop_all, gnnprop_all = _gnnprop("All chromosomes", gnn_all, visible=True)
 fig_fst_all = _fst_heatmap("All chromosomes", fst_all, visible=True)
+fig_worldmap = gnnprop_all.world_map()
 
 doc.add_root(Div(text="""<h3>Average over all chromosomes</h3><p><br></p>"""))
 doc.add_root(row(fig_hm_all, fig_fst_all))
+if fig_worldmap is not None:
+    doc.add_root(row(fig_worldmap))
 doc.add_root(row(fig_gnnprop_all))
 doc.add_root(Div(text="""<p><br></p>"""))
 
@@ -176,6 +268,7 @@ doc.add_root(Div(text="""<p><br></p>"""))
 #
 ##############################
 doc.add_root(Div(text="""<h3>Single chromosomes</h3>"""))
+
 
 def create_selector():
     menu = list(hm.keys())
@@ -203,6 +296,7 @@ def create_selector():
     selector.js_on_change("value", callback)
 
     return [selector] + figures
+
 
 # selector = column(create_selector())
 # doc.add_root(selector)
