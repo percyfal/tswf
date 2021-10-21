@@ -263,7 +263,7 @@ class MatrixFigure(Figure):
         self._fig.outline_line_color = None
         return self._fig
 
-    def vbar_stack(self, row_colors=None, factor_levels=None, groups=None):
+    def vbar_stack(self, factor_levels=None, groups=None):
         data = self._data.copy().data
         # Factor is the index
         levels = data.index.names
@@ -312,8 +312,8 @@ class MatrixFigure(Figure):
 
         return self._fig
 
-    def world_map(self, row_colors=None):
-        # FIXME: should not be set here but rather in calling script
+    def world_map(self):
+        self._kw["plot_height"] = 600
         self._kw["title"] = "World map"
         self._kw.pop("y_axis_label", None)
         self._kw.pop("x_range", None)
@@ -321,17 +321,25 @@ class MatrixFigure(Figure):
         self._fig = plotting.figure(**self._kw)
         from data import natural_earth
 
-        df = natural_earth()
         geosource = GeoJSONDataSource(geojson=json.dumps(natural_earth()))
-        hover = HoverTool()
-        # FIXME: these should not be hardcoded. Also would want to
-        # have separate hover tools for patches and samples
-        hover.tooltips = [
-            ("country", "@country"),
-            ("sample_node_population", "@sample_node_population"),
-            ("sample_name", "@sample_name"),
+        hover = HoverTool(
+            names=["samples"],
+            tooltips=[
+                ("sample_node_population", "@sample_node_population"),
+                ("sample_name", "@sample_name"),
+            ],
+        )
+        hover_map = HoverTool(names=["choropleth"], tooltips=[("country", "@country")])
+
+        # FIXME: get rid of explicit key
+        groups = sorted(list(set(self.source.data["sample_node_population"])))
+        palette = dict(zip(groups, _get_palette(n=len(groups))))
+        self.source.data["colors"] = [
+            palette[x] for x in self.source.data["sample_node_population"]
         ]
+
         self._fig.add_tools(hover)
+        self._fig.add_tools(hover_map)
         self._fig.add_tools(BoxSelectTool())
         self._fig.xgrid.grid_line_color = None
         self._fig.ygrid.grid_line_color = None
@@ -340,11 +348,19 @@ class MatrixFigure(Figure):
             "ys",
             source=geosource,
             fill_alpha=0.1,
-            line_width=0.5,
+            line_width=0.7,
             line_color="black",
+            color="white",
+            name="choropleth",
         )
         self._fig.circle(
-            x="longitude", y="latitude", size=5, fill_alpha=0.5, source=self.source
+            x="longitude",
+            y="latitude",
+            size=7,
+            fill_alpha=1,
+            source=self.source,
+            name="samples",
+            color="colors",
         )
         return self._fig
 

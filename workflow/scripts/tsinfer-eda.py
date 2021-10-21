@@ -49,10 +49,11 @@ genealogical tree, albeit with polytomies.</p>
 <p>The plots have been created using <a
 href="https://docs.bokeh.org/en/latest/index.html">bokeh</a>. To the
 right of each plot, there is a toolbar with tools to pan, box zoom,
-wheel zoom, save graphics, reset graphic, help, and hover tool, each
-of which can be turned on and off as required. The hover tool provides
-the mouse pointer with extra information when hovering the plot. The
-included plots are described in the following sections.</p>
+box select, wheel zoom, save graphics, reset graphic, help, and hover
+tool, each of which can be turned on and off as required. The hover
+tool provides the mouse pointer with extra information when hovering
+the plot. The included plots are described in the following
+sections.</p>
 
 
 
@@ -87,7 +88,16 @@ in a completly different environment.</p>
 
 
 """,
-    width=1000,
+    width=docwidth,
+)
+dmap = Div(
+    text="""
+<h3>Choropleth world map plot</h3>
+
+<p> The world map plot shows a choropleth overlayed with sampling
+sites. The plot is linked to the mean GNN clustering plot such that
+selections in one plot translate to selections in the other. </p> """,
+    width=docwidth,
 )
 doc.add_root(d)
 
@@ -131,14 +141,19 @@ for csvfile, treefile in zip(snakemake.input.csv, snakemake.input.trees):
         ):
             has_lng_lat = True
 
-gnn_all = pd.concat(
-    gnn.values(), keys=["gnn-{}".format(i + 1) for i in range(len(gnn.keys()))]
-).mean(level=[1, 2, 3])
+gnn_all = (
+    pd.concat(
+        gnn.values(), keys=["gnn-{}".format(i + 1) for i in range(len(gnn.keys()))]
+    )
+    .groupby(level=[1, 2, 3])
+    .mean()
+)
 
 gnn_all = gnn_all.sort_values(by=gnn_all.columns.to_list(), ascending=False)
 
 # Add longitude, latitude to gnn_all
 if has_lng_lat:
+    doc.add_root(dmap)
     gnn_all["longitude"] = None
     gnn_all["latitude"] = None
     for ind in individuals:
@@ -246,7 +261,9 @@ fst_all = bokehutils.Matrix(
     pd.concat(
         [v.data for v in fst_data.values()],
         keys=["fst-{}".format(i + 1) for i in range(len(fst_data.keys()))],
-    ).mean(level=1)
+    )
+    .groupby(level=1)
+    .mean()
 )
 
 fig_hm_all = _heatmap("All chromosomes", gnn_all, visible=True)
@@ -267,7 +284,11 @@ doc.add_root(Div(text="""<p><br></p>"""))
 # NB: Currently selector does not work
 #
 ##############################
-doc.add_root(Div(text="""<h3>Single chromosomes</h3>"""))
+doc.add_root(
+    Div(
+        text=f"""<br></br><hr style="width:{docwidth}px;"></hr><br></br><h3>Single chromosomes</h3>"""
+    )
+)
 
 
 def create_selector():
