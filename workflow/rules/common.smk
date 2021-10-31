@@ -67,7 +67,7 @@ wildcard_constraints:
     prefix="(.+|)",
     results=str(__RESULTS__),
     sample=wildcards_or(cfg.samples.samples, empty=True),
-    suffix="(.+|)",
+    suffix="([_\-\.].+|)",
     vcf="(.vcf.gz|.vcf|.bcf)",
 
 
