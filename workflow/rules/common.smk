@@ -85,7 +85,11 @@ def all_tsinfer(wildcards):
     for analysis in cfg.analyses("tsinfer"):
         logger.info(f"Collecting files for tsinfer: {analysis.name}")
         eda = __RESULTS__ / f"{analysis.name}/{analysis.dataset}/population.eda.html"
+        targz = (
+            __RESULTS__ / f"{analysis.name}/{analysis.dataset}/gnn.population.tar.gz"
+        )
         out.append(eda)
+        out.append(targz)
     return out
 
 

@@ -89,6 +89,19 @@ rule tsinfer_gnn:
         "../scripts/tsinfer-gnn.py"
 
 
+rule tsinfer_gnn_archive:
+    """Archive csv output files"""
+    output:
+        targz="{results}/{analysis}/{dataset}/gnn.{mode}.tar.gz",
+    input:
+        unpack(tsinfer_eda_input),
+    log:
+        "logs/{results}/{analysis}/{dataset}/gnn.{mode}.tar.gz.log",
+    threads: 1
+    shell:
+        "tar -zcvf {output.targz} {input.csv} > {log}"
+
+
 rule tsinfer_eda:
     """Make EDA document based on bokeh plots"""
     output:
