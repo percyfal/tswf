@@ -349,6 +349,7 @@ class MatrixFigure(Figure):
             source=geosource,
             fill_alpha=0.1,
             line_width=0.7,
+            line_alpha=0.5,
             line_color="black",
             color="white",
             name="choropleth",
