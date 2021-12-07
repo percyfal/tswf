@@ -10,6 +10,14 @@ Snakemake workflow for whole genome genealogy analyses. Supported methods includ
 - [tsinfer](https://github.com/tskit-dev/tsinfer "tree sequence inference")
 - [Relate](https://myersgroup.github.io/relate/ "estimate genome-wide genealogies")
 
+## Features
+
+### tsinfer
+
+The workflow will generate tree sequences, calculate genealogical
+nearest neighbours and produce interactive plots with
+[bokeh](https://docs.bokeh.org/en/latest/).
+
 ## Authors
 
 * Per Unneberg (@percyfal)
