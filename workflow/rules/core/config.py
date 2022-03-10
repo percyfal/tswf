@@ -70,7 +70,7 @@ def add_gitinfo(config):
             config["__workflow_commit__"] = commit_short + dirty
             config[
                 "__workflow_commit_link__"
-            ] = f"https://github.com/NBISweden/manticore-smk/commit/{commit}"
+            ] = f"https://github.com/percyfal/wg-genealogy-smk/commit/{commit}"
     except Exception as e:
         print(e)
         raise
