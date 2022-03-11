@@ -6,3 +6,4 @@ dependencies:
   - cyvcf2
   - pandas
   - tsinfer
+  - zarr=2.10.0
