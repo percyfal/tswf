@@ -258,7 +258,7 @@ df.to_csv(args.output_file)
 if args.plot is not None:
     import bokehutils
     from bokeh.plotting import show, figure, output_file
-    from bokeh.models import ColumnDataSource
+    from bokeh.models import ColumnDataSource, PrintfTickFormatter
     source = ColumnDataSource(df.reset_index())
     p = figure(title=args.title, plot_width=1800, plot_height=400,
                min_border=0, y_range=(0, 1), x_range=(0, ts.sequence_length))
@@ -270,14 +270,21 @@ if args.plot is not None:
                  color=bokehutils._get_palette(n=len(populations)), source=source,
                  legend_label=populations)
     p.add_layout(p.legend[0], "right")
-    p.axis.major_tick_line_color = None
-    p.axis.minor_tick_line_color = None
+    p.legend[0].label_text_font_size = "14pt"
+    p.axis.major_tick_line_color = "black"
+    p.axis.minor_tick_line_color = "black"
+    p.xaxis.axis_label = "Base pairs"
+    p.xaxis.axis_label_text_font_size = "14pt"
     p.xaxis.major_label_orientation = 1.0
-    p.xaxis.major_label_text_font_size = "0pt"
+    p.xaxis.major_label_text_font_size = "12pt"
+    p.xaxis[0].formatter = PrintfTickFormatter(format="%4.1e")
     p.yaxis.major_label_text_font_size = "12pt"
-    p.axis.axis_line_color = None
+    p.yaxis.axis_label = "GNN proportion"
+    p.yaxis.axis_label_text_font_size = "14pt"
+    p.axis.axis_line_color = "black"
     p.grid.grid_line_color = None
-    p.outline_line_color = None
+    p.outline_line_color = "black"
+    p.title.text_font_size = "16pt"
 
     _, ext = os.path.splitext(args.plot)
     if ext == ".png":

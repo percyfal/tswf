@@ -153,7 +153,6 @@ class MatrixFigure(Figure):
 
         row_factors, row_padding = _factors(row_labels, row_cluster)
         col_factors, col_padding = _factors(col_labels, col_cluster, axis=1)
-
         # Setup ranges
         if "x_range" not in self._kw.keys():
             self._kw["x_range"] = FactorRange(factors=row_factors)
@@ -190,6 +189,7 @@ class MatrixFigure(Figure):
             *args,
             **kwargs,
         )
+        self._fig.axis.major_label_text_font_size = "12pt"
 
         # Add dendrogram
         if dendrogram:
@@ -214,6 +214,8 @@ class MatrixFigure(Figure):
                 border_line_color=None,
                 title=cbar_title,
             )
+            color_bar.major_label_text_font_size = "12pt"
+            color_bar.title_text_font_size = "14pt"
             self._fig.add_layout(color_bar, "right")
 
         # Add group colors
@@ -261,6 +263,7 @@ class MatrixFigure(Figure):
         self._fig.axis.axis_line_color = None
         self._fig.grid.grid_line_color = None
         self._fig.outline_line_color = None
+        self._fig.title.text_font_size = "16pt"
         return self._fig
 
     def vbar_stack(self, factor_levels=None, groups=None):
@@ -291,6 +294,7 @@ class MatrixFigure(Figure):
             line_width=0.5,
         )
         self._fig.add_layout(self._fig.legend[0], "right")
+        self._fig.legend[0].label_text_font_size = "14pt"
 
         hover = HoverTool()
         hover.tooltips = list(map(lambda x: (x[0], f"@{x[1]}"), zip(levels, levels)))
@@ -304,11 +308,15 @@ class MatrixFigure(Figure):
         self._fig.axis.minor_tick_line_color = None
         self._fig.xaxis.group_label_orientation = 1.0
         self._fig.xaxis.subgroup_label_orientation = 1.0
+        self._fig.xaxis.group_text_font_size = "14pt"
         self._fig.xaxis.major_label_orientation = 1.0
         self._fig.xaxis.major_label_text_font_size = "0pt"
+        self._fig.yaxis.major_label_text_font_size = "12pt"
+        self._fig.yaxis.axis_label_text_font_size = "14pt"
         self._fig.axis.axis_line_color = None
         self._fig.grid.grid_line_color = None
         self._fig.outline_line_color = "black"
+        self._fig.xaxis.separator_line_width = 0.0
 
         return self._fig
 
@@ -348,7 +356,7 @@ class MatrixFigure(Figure):
             "ys",
             source=geosource,
             fill_alpha=0.1,
-            line_width=0.7,
+            line_width=1,
             line_alpha=0.5,
             line_color="black",
             color="white",
@@ -357,12 +365,15 @@ class MatrixFigure(Figure):
         self._fig.circle(
             x="longitude",
             y="latitude",
-            size=7,
-            fill_alpha=1,
+            size=10,
+            fill_alpha=0.5,
+            line_color="black",
             source=self.source,
             name="samples",
             color="colors",
         )
+        self._fig.title.text_font_size = "16pt"
+        self._fig.axis.major_label_text_font_size = "12pt"
         return self._fig
 
 

@@ -222,7 +222,9 @@ def _gnnprop(infile, gnn, plot_width=1800, plot_height=400, visible=True):
         visible=visible,
     )
     groups = [x for x in sorted(gnn.columns) if not x in ["longitude", "latitude"]]
-    return f.vbar_stack(factor_levels=[0, 1], groups=groups), f
+    p = f.vbar_stack(factor_levels=[0, 1], groups=groups)
+    f._fig.title.text_font_size = "18pt"
+    return p, f
 
 
 # Need to parallelize if ts inference
