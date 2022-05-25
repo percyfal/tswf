@@ -294,7 +294,7 @@ class MatrixFigure(Figure):
             line_width=0.5,
         )
         self._fig.add_layout(self._fig.legend[0], "right")
-        self._fig.legend[0].label_text_font_size = "14pt"
+        self._fig.legend[0].label_text_font_size = "12pt"
 
         hover = HoverTool()
         hover.tooltips = list(map(lambda x: (x[0], f"@{x[1]}"), zip(levels, levels)))

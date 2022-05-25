@@ -274,17 +274,17 @@ if args.plot is not None:
     p.axis.major_tick_line_color = "black"
     p.axis.minor_tick_line_color = "black"
     p.xaxis.axis_label = "Base pairs"
-    p.xaxis.axis_label_text_font_size = "14pt"
+    p.xaxis.axis_label_text_font_size = "18pt"
     p.xaxis.major_label_orientation = 1.0
-    p.xaxis.major_label_text_font_size = "12pt"
+    p.xaxis.major_label_text_font_size = "16pt"
     p.xaxis[0].formatter = PrintfTickFormatter(format="%4.1e")
-    p.yaxis.major_label_text_font_size = "12pt"
+    p.yaxis.major_label_text_font_size = "16pt"
     p.yaxis.axis_label = "GNN proportion"
-    p.yaxis.axis_label_text_font_size = "14pt"
+    p.yaxis.axis_label_text_font_size = "18pt"
     p.axis.axis_line_color = "black"
     p.grid.grid_line_color = None
     p.outline_line_color = "black"
-    p.title.text_font_size = "16pt"
+    p.title.text_font_size = "20pt"
 
     _, ext = os.path.splitext(args.plot)
     if ext == ".png":

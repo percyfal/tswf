@@ -281,6 +281,16 @@ doc.add_root(row(fig_gnnprop_all))
 doc.add_root(Div(text="""<p><br></p>"""))
 
 ##############################
+# Save high-res versions of fst, gnnclust, map, and gnnprop
+##############################
+from bokeh.io import export_png
+export_png(fig_hm_all, filename="gnnprop.png")
+export_png(fig_fst_all, filename="gnnfst.png")
+export_png(fig_worldmap, filename="worldmap.png")
+export_png(fig_gnnprop_all, filename="gnnpropall.png")
+
+
+##############################
 # Single chromosomes
 #
 # NB: Currently selector does not work
