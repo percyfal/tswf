@@ -7,4 +7,6 @@ dependencies:
   - scipy
   - matplotlib
   - tqdm
+  - geckodriver
+  - firefox
   - seaborn
