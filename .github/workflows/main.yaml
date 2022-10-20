@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Lint workflow
-      uses: snakemake/snakemake-github-action@v1.22.0
+      uses: snakemake/snakemake-github-action@v1.24.0
       with:
         directory: .
         snakefile: workflow/Snakefile
@@ -24,13 +24,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Test workflow (local test data)
-      uses: snakemake/snakemake-github-action@v1.22.0
+      uses: snakemake/snakemake-github-action@v1.24.0
       with:
         directory: .test
         snakefile: workflow/Snakefile
         args: "--use-conda --show-failed-logs -j 2 --conda-cleanup-pkgs cache --wrapper-prefix file:///github/workspace/workflow/wrappers"
     - name: Test report
-      uses: snakemake/snakemake-github-action@v1.22.0
+      uses: snakemake/snakemake-github-action@v1.24.0
       with:
         directory: .test
         snakefile: workflow/Snakefile
