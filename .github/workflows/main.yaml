@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Lint workflow
-      uses: snakemake/snakemake-github-action@v1.22.0
+      uses: snakemake/snakemake-github-action@v1.24.0
       with:
         directory: .
         snakefile: workflow/Snakefile
@@ -23,14 +23,20 @@ jobs:
     timeout-minutes: 30
     steps:
     - uses: actions/checkout@v2
+    - name: Install snakemake environments
+      uses: snakemake/snakemake-github-action@v1.24.0
+      with:
+        directory: .test
+        snakefile: workflow/Snakefile
+        args: "-j 2 --use-conda --wrapper-prefix file:///github/workspace/workflow/wrappers --conda-create-envs-only"
     - name: Test workflow (local test data)
-      uses: snakemake/snakemake-github-action@v1.22.0
+      uses: snakemake/snakemake-github-action@v1.24.0
       with:
         directory: .test
         snakefile: workflow/Snakefile
         args: "--use-conda --show-failed-logs -j 2 --conda-cleanup-pkgs cache --wrapper-prefix file:///github/workspace/workflow/wrappers"
     - name: Test report
-      uses: snakemake/snakemake-github-action@v1.22.0
+      uses: snakemake/snakemake-github-action@v1.24.0
       with:
         directory: .test
         snakefile: workflow/Snakefile

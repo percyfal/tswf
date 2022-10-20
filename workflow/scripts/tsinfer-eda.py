@@ -1,31 +1,20 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-import re
+import json
 import os
-import sys
+import re
+from collections import defaultdict
+
+import bokehutils
 import pandas as pd
 import tskit
-import itertools
-import json
-import numpy as np
-from collections import defaultdict
-from bokeh.resources import CDN
-from bokeh.embed import file_html, components
-from bokeh.models import (
-    Paragraph,
-    Div,
-    Panel,
-    Tabs,
-    Dropdown,
-    CustomJS,
-    Select,
-    GeoJSONDataSource,
-)
 from bokeh.document import Document
-from bokeh.layouts import row, column
-from bokeh.io.doc import curdoc
-import bokehutils
-from common import group_samples_ts
+from bokeh.embed import file_html
+from bokeh.io import export_png
+from bokeh.layouts import row
+from bokeh.models import CustomJS
+from bokeh.models import Div
+from bokeh.models import Select
+from bokeh.resources import CDN
 from snakemake.io import regex
 
 # Main width
@@ -107,12 +96,12 @@ popkey = "sample_node_population"
 gnn = defaultdict(dict)
 treefiles = defaultdict(dict)
 
-rgx = re.compile(re.sub("\$$", "", regex(snakemake.params.fmt)))
+rgx = re.compile(re.sub(r"\$$", "", regex(snakemake.params.fmt)))  # noqa: F821
 
 individuals = None
 first = True
 has_lng_lat = False
-for csvfile, treefile in zip(snakemake.input.csv, snakemake.input.trees):
+for csvfile, treefile in zip(snakemake.input.csv, snakemake.input.trees):  # noqa: F821
     bn = os.path.basename(csvfile)
     try:
         k = rgx.search(os.path.basename(treefile)).group(0)
@@ -142,9 +131,7 @@ for csvfile, treefile in zip(snakemake.input.csv, snakemake.input.trees):
             has_lng_lat = True
 
 gnn_all = (
-    pd.concat(
-        gnn.values(), keys=["gnn-{}".format(i + 1) for i in range(len(gnn.keys()))]
-    )
+    pd.concat(gnn.values(), keys=[f"gnn-{i + 1}" for i in range(len(gnn.keys()))])
     .groupby(level=[1, 2, 3])
     .mean()
 )
@@ -221,8 +208,10 @@ def _gnnprop(infile, gnn, plot_width=1800, plot_height=400, visible=True):
         name=infile,
         visible=visible,
     )
-    groups = [x for x in sorted(gnn.columns) if not x in ["longitude", "latitude"]]
-    return f.vbar_stack(factor_levels=[0, 1], groups=groups), f
+    groups = [x for x in sorted(gnn.columns) if x not in ["longitude", "latitude"]]
+    p = f.vbar_stack(factor_levels=[0, 1], groups=groups)
+    f._fig.title.text_font_size = "18pt"
+    return p, f
 
 
 # Need to parallelize if ts inference
@@ -260,7 +249,7 @@ for k in list(gnn.keys()):
 fst_all = bokehutils.Matrix(
     pd.concat(
         [v.data for v in fst_data.values()],
-        keys=["fst-{}".format(i + 1) for i in range(len(fst_data.keys()))],
+        keys=[f"fst-{i + 1}" for i in range(len(fst_data.keys()))],
     )
     .groupby(level=1)
     .mean()
@@ -279,6 +268,18 @@ doc.add_root(row(fig_gnnprop_all))
 doc.add_root(Div(text="""<p><br></p>"""))
 
 ##############################
+# Save high-res versions of fst, gnnclust, map, and gnnprop
+##############################
+try:
+    export_png(fig_hm_all, filename="gnnprop.png")
+    export_png(fig_fst_all, filename="gnnfst.png")
+    export_png(fig_worldmap, filename="worldmap.png")
+    export_png(fig_gnnprop_all, filename="gnnpropall.png")
+except Exception as e:
+    print(e)
+
+
+##############################
 # Single chromosomes
 #
 # NB: Currently selector does not work
@@ -286,7 +287,10 @@ doc.add_root(Div(text="""<p><br></p>"""))
 ##############################
 doc.add_root(
     Div(
-        text=f"""<br></br><hr style="width:{docwidth}px;"></hr><br></br><h3>Single chromosomes</h3>"""
+        text=(
+            f"""<br></br><hr style="width:{docwidth}px;">"""
+            """</hr><br></br><h3>Single chromosomes</h3>"""
+        )
     )
 )
 
@@ -328,5 +332,5 @@ for k in list(hm.keys()):
     doc.add_root(row(gnnprop[k]))
 
 html = file_html(doc, CDN, "Tsinfer EDA")
-with open(snakemake.output.html, "w") as fh:
+with open(snakemake.output.html, "w") as fh:  # noqa: F821
     fh.write(html)
