@@ -30,7 +30,10 @@ jobs:
         snakefile: workflow/Snakefile
         args: "-j 2 --use-conda --wrapper-prefix file:///github/workspace/workflow/wrappers --conda-create-envs-only"
     - name: Find firefox
-      run: "find .test/.snakemake/conda -name firefox"
+      run: |
+        find .test/.snakemake/conda -name firefox
+        find .test/.snakemake/conda -name geckodriver
+        .test/.snakemake/conda/9964155fc4021aac46b133bc6136a04a_/bin/firefox --version
     - name: Test workflow (local test data)
       uses: snakemake/snakemake-github-action@v1.24.0
       with:
