@@ -10,3 +10,4 @@ dependencies:
   - geckodriver
   - firefox
   - seaborn
+  - selenium
