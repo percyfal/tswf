@@ -28,7 +28,7 @@ jobs:
       with:
         directory: .test
         snakefile: workflow/Snakefile
-        args: "--use-conda --wrapper-prefix file:///github/workspace/workflow/wrappers --conda-create-envs-only"
+        args: "-j 2 --use-conda --wrapper-prefix file:///github/workspace/workflow/wrappers --conda-create-envs-only"
     - name: Find firefox
       run: "find .test/.snakemake/conda -name firefox"
     - name: Test workflow (local test data)
