@@ -1,0 +1,22 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+
+description: |
+  Project admin configuration file. The configuration file is loaded
+  by the CLI to provide global access to configuration options and
+  settings across commands.
+
+properties:
+  project_name:
+    description: TSWF project name
+    default: tswf
+    type: string
+  snakemake_profiles:
+    description: |
+      Key-value dictionary of snakemake profiles. The values
+      correspond to uris pointing to the profile location
+    type: [object, 'null']
+    patternProperties:
+      '[0-9a-zA-Z\-_]+':
+        type: string
+        format: uri
+        description: full path to snakemake profile

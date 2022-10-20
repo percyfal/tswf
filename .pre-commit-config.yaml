@@ -46,6 +46,6 @@ repos:
     hooks:
       - id: lint
         name: Snakemake lint
-        entry: snakemake --lint text
+        entry: snakemake --lint text -s src/workflow/Snakefile -d src/
         language: system
-        files: ''
+        files: 'src/workflow/Snakefile'
