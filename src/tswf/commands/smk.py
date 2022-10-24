@@ -35,8 +35,14 @@ def run(env, profile, jobs, test, snakemake_args):
     options = list(snakemake_args) + ["-j", str(jobs)]
     snakefile = config.SNAKEMAKE_ROOT / "Snakefile"
     if profile is not None:
-        profile = get_profile(profile, config.config)
+        profile = get_profile(profile, env.config)
         options.extend(["--profile", profile])
     if test:
-        options.extend(["--directory", str(config.ROOT_DIR / "test_wf")])
-    wrappers.snakemake(options=" ".join(options), snakefile=snakefile, targets="")
+        if "--use-conda" not in " ".join(options):
+            options.extend(["--use-conda"])
+        if "--conda-prefix" not in " ".join(options):
+            logger.info("no conda-prefix set; using $HOME/.snakemake/conda")
+            options.extend(["--conda-prefix", "$HOME/.snakemake/conda"])
+        options.extend(["--directory", str(config.PKG_DIR / "tests")])
+    options = " ".join(options)
+    wrappers.snakemake(options=options, snakefile=snakefile, targets="")

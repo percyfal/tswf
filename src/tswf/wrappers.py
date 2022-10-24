@@ -26,13 +26,32 @@ def snakemake(targets=None, options=None, snakefile=None):
     ]
     cmd = " ".join(cmdlist)
     if shutil.which("snakemake") is None:
-        logger.info("snakemake not installed; cannot run command:")
-        logger.info(f"  {cmd}")
+        logger.error("snakemake not installed; cannot run command:")
+        logger.error(f"  {cmd}")
         return
 
     try:
         logger.debug(f"running {cmd}")
         subprocess.run(cmd, check=True, shell=True)
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
         logger.error(f"{cmd} failed")
+        print(e)
+        raise
+
+
+def nextflow(workflow, options=None):
+    cmdlist = ["nextflow", "run", f"{str(options) or ''}", workflow]
+    cmd = " ".join(cmdlist)
+
+    if shutil.which("nextflow") is None:
+        logger.error("nextflow not installed; cannot run command:")
+        logger.error(f"    {cmd}")
+        return
+
+    try:
+        logger.debug(f"running {cmd}")
+        subprocess.run(cmd, check=True, shell=True)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"{cmd} failed")
+        print(e)
         raise

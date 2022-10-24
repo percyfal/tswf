@@ -18,18 +18,19 @@ __author__ = "Per Unneberg"
 logger = logging.getLogger(__name__)
 
 
-ROOT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
+PKG_DIR = pathlib.Path(__file__).absolute().parent
 CONTEXT_SETTINGS = dict(auto_envvar_prefix="TSWF", show_default=True)
 
 pass_environment = click.make_pass_decorator(Environment, ensure=True)
-cmd_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), "commands"))
-tools_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), "tools"))
 
 
 class tswf_CLI(click.MultiCommand):
+    module = "tswf.commands"
+    cmd_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), "commands"))
+
     def list_commands(self, ctx):
         rv = []
-        for filename in os.listdir(cmd_folder):
+        for filename in os.listdir(self.cmd_folder):
             if filename.endswith(".py") and not filename.startswith("__"):
                 rv.append(filename[:-3])
         rv.sort()
@@ -37,7 +38,7 @@ class tswf_CLI(click.MultiCommand):
 
     def get_command(self, ctx, name):
         try:
-            mod = __import__(f"tswf.commands.{name}", None, None, ["main"])
+            mod = __import__(f"{self.module}.{name}", None, None, ["main"])
         except ImportError:
             raise
             return
@@ -60,9 +61,12 @@ def cli(env, config_file):
     )
     if env.debug:
         logging.getLogger().setLevel(logging.DEBUG)
-    env.home = ROOT_DIR
     if config_file is None:
+        env.home = pathlib.Path(os.curdir).absolute()
         config_file = env.home / "tswf.yaml"
+    else:
+        config_file = pathlib.Path(config_file).absolute()
+        env.home = config_file.parent
     if config_file.exists():
         config = load_config(file=config_file)
     else:

@@ -1,17 +1,13 @@
 from ruamel.yaml import YAML
-from tswf.cli import ROOT_DIR
-from tswf.config import load_config
+from tswf.cli import PKG_DIR
 from tswf.config import Schema
 
-# Main config resides in tswf.yaml
-config = load_config(file=ROOT_DIR / "tswf.yaml")
-
-SNAKEMAKE_ROOT = ROOT_DIR / "src" / "workflow"
+SNAKEMAKE_ROOT = PKG_DIR / "workflow"
 
 
 class SchemaFiles:
-    CONFIGURATION_SCHEMA = ROOT_DIR / "schemas" / "config.schema.yaml"
-    SAMPLES_SCHEMA = ROOT_DIR / "schemas" / "samples.schema.yaml"
+    CONFIGURATION_SCHEMA = PKG_DIR / "schemas" / "config.schema.yaml"
+    SAMPLES_SCHEMA = PKG_DIR / "schemas" / "samples.schema.yaml"
 
 
 def get_schema(schema="CONFIGURATION_SCHEMA"):

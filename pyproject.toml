@@ -50,6 +50,7 @@ package-data = { tswf = [
 
 [project.scripts]
 tswf = "tswf.cli:cli"
+tswf-tsinfer-eda = "tswf.tools.viz.tsinfer_eda:main"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
