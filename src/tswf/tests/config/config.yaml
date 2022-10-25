@@ -8,7 +8,7 @@ derive_aa:
     - tsk_20 # Gorilla
     - tsk_21 # Orangutan
   options:
-    n: 4
+    min-alleles: 4
 
 chromosomes:
   - '1'

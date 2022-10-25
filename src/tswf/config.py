@@ -7,6 +7,7 @@ import pprint
 import re
 import types
 from collections import OrderedDict
+from pathlib import Path
 from typing import Any
 from typing import Mapping
 
@@ -17,13 +18,19 @@ from ruamel.yaml import YAML
 
 logger = logging.getLogger(__name__)
 
+PKG_DIR = Path(__file__).absolute().parent
+
 
 class ConfigError(Exception):
     pass
 
 
 class SchemaFiles:
-    CONFIGURATION_SCHEMA = "schemas/config.schema.yaml"
+    CONFIGURATION_SCHEMA = Path("schemas") / "config.schema.yaml"
+    WORKFLOW_CONFIGURATION_SCHEMA = Path("workflow") / "schemas" / "config.schema.yaml"
+    SAMPLES_SCHEMA = Path("workflow") / "schemas" / "samples.schema.yaml"
+    POPULATIONS_SCHEMA = Path("workflow") / "schemas" / "populations.schema.yaml"
+    ENVMODULES_SCHEMA = Path("workflow") / "schemas" / "envmodules.schema.yaml"
 
 
 # Need jsonschema>=4 for Draft202012Validator, but jupyter-book
@@ -144,7 +151,9 @@ class Schema:
 
 
 def get_schema(schema="CONFIGURATION_SCHEMA"):
-    schemafile = pkg_resources.resource_filename("tswf", getattr(SchemaFiles, schema))
+    schemafile = pkg_resources.resource_filename(
+        "tswf", str(getattr(SchemaFiles, schema))
+    )
     with open(schemafile) as fh:
         schema = YAML().load(fh)
     return Schema(schema)

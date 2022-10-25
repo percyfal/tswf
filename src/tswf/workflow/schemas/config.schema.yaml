@@ -5,6 +5,10 @@ description: snakemake configuration file
 type: object
 
 properties:
+  description:
+    description: >-
+      Description of analysis.
+    type: string
   ref:
     description: reference sequence
     type: string
@@ -15,25 +19,34 @@ properties:
     type: string
     pattern: .+\.(tsv|csv)$
   chromosomes:
-    $ref: "definitions.schema.yaml#/definitions/chromosomes"
-  resources.default:
-    default: {}
-    $ref: "definitions.schema.yaml#/definitions/resources.default"
-  rules:
-    default: {}
-    $ref: "definitions.schema.yaml#/definitions/rules.config"
+    description: >-
+      List of chromosomes to analyse. Can be set in analysis section.
+    type: array
+    items:
+      type: string
   derive_aa:
+    type: object
     default: {}
-    $ref: "definitions.schema.yaml#/definitions/derive_aa"
+    properties:
+      method:
+        type: string
+        default: 'vote'
+        enum: ['vote'] ## Add methods suggested on tsinfer list here
+      options:
+        type: object
+        default: {}
+      outgroups:
+        type: array
+        default: []
+        items:
+          type: string
+          uniqueItems: true
+    additionalProperties: false
+
+
 
 # entries that have to be in the config file for successful validation
 required:
   - samples
   - chromosomes
   - ref
-
-# Analysis section
-patternProperties:
-  '(relate|tsinfer)/[0-9_a-zA-Z]+':
-    type: object
-    $ref: "definitions.schema.yaml#/definitions/analysis"

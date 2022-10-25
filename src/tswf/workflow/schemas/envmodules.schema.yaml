@@ -1,0 +1,16 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+
+description: Envmodules configuration file
+
+type: object
+
+properties:
+  envmodules:
+    type: object
+    default: {}
+    patternProperties:
+      .+:
+        type: array
+        items:
+          type: string
+          pattern: .+

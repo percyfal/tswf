@@ -1,44 +1,54 @@
-from pathlib import Path
-from snakemake.utils import validate
+import os
 import pandas as pd
+from pathlib import Path
 
-# Determine wrapper prefix since we mix local wrappers with wrappers
-# from snakemake-wrappers
-SMK_WRAPPER_VERSION = "0.67.0"
-SMK_WRAPPER_PREFIX_RAW = "https://github.com/snakemake/snakemake-wrappers/raw"
-SMK_WRAPPER_PREFIX = f"{SMK_WRAPPER_PREFIX_RAW}/{SMK_WRAPPER_VERSION}"
-WRAPPER_PREFIX = workflow.wrapper_prefix.rstrip("/")
-if WRAPPER_PREFIX == SMK_WRAPPER_PREFIX_RAW:
-    # Change main to version number once we start sem-versioning
-    WRAPPER_PREFIX = (
-        "https://raw.githubusercontent.com/NBISweden/manticore-smk/main/workflow/wrappers"
-    )
+from snakemake.utils import validate
+from snakemake.io import load_configfile
+from tswf.config import get_schema
+from tswf.snakemake.config import add_gitinfo
+from tswf.snakemake.config import PopulationData
+from tswf.snakemake.config import SampleData
+from tswf.snakemake.config import Config
+from tswf.snakemake.config import wildcards_or
 
 
-# this container defines the underlying OS for each job when using the workflow
-# with --use-conda --use-singularity
 container: "docker://continuumio/miniconda3"
 
+
+envmodules_file = Path(os.environ.get("TSWF_ENVMODULES", "config/envmodules.yaml"))
+try:
+    envmodules = load_configfile(envmodules_file)["envmodules"]
+except FileNotFoundError:
+    envmodules = {}
+schema = get_schema("ENVMODULES_SCHEMA")
+schema.validate(envmodules)
 
 ##############################
 # Core configuration
 ##############################
-include: "core/config.py"
+# FIXME: remove
+# include: "core/config.py"
 
 
 ##### load config and sample sheets #####
+schema = get_schema("WORKFLOW_CONFIGURATION_SCHEMA")
+
+
 configfile: Path("config/config.yaml")
 
 
-validate(config, schema="../schemas/config.schema.yaml")
+schema.validate(config)
 
+# validate(config, schema="../schemas/config.schema.yaml")
+schema = get_schema("SAMPLES_SCHEMA")
 populations = PopulationData(config["populations"])
 samples = SampleData(config["samples"])
 samples.merge(populations, left_on="population", right_index=True)
 
 # Add git information
-add_gitinfo(config)
+add_gitinfo(config, workflow)
 # Wrap config dictionary
+config["samples"] = samples
 cfg = Config(config, samples)
 
 ##############################
@@ -60,7 +70,6 @@ except Exception as e:
 ## Wildcard constraints
 ##############################
 wildcard_constraints:
-    analysis=wildcards_or(cfg.analysisnames),
     bcf="(.vcf.gz|.bcf)",
     chrom=wildcards_or(cfg.chromosomes),
     dot="(.|)",

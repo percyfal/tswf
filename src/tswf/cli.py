@@ -17,8 +17,6 @@ __author__ = "Per Unneberg"
 
 logger = logging.getLogger(__name__)
 
-
-PKG_DIR = pathlib.Path(__file__).absolute().parent
 CONTEXT_SETTINGS = dict(auto_envvar_prefix="TSWF", show_default=True)
 
 pass_environment = click.make_pass_decorator(Environment, ensure=True)
