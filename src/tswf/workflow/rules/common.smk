@@ -48,7 +48,6 @@ samples.merge(populations, left_on="population", right_index=True)
 # Add git information
 add_gitinfo(config, workflow)
 # Wrap config dictionary
-config["samples"] = samples
 cfg = Config(config, samples)
 
 ##############################

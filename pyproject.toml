@@ -50,6 +50,7 @@ package-data = { tswf = [
 
 [project.scripts]
 tswf = "tswf.cli:cli"
+tswf-tsinfer = "tswf.tools.tsinfer:main"
 tswf-tsinfer-eda = "tswf.tools.viz.tsinfer_eda:main"
 tswf-get-ancestral-allele = "tswf.tools.get_ancestral_allele:main"
 tswf-make-ancestral-sequence = "tswf.tools.make_ancestral_sequence:main"
