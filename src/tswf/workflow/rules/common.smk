@@ -1,4 +1,5 @@
 import os
+import re
 import pandas as pd
 from pathlib import Path
 
@@ -39,7 +40,6 @@ configfile: Path("config/config.yaml")
 
 schema.validate(config)
 
-# validate(config, schema="../schemas/config.schema.yaml")
 schema = get_schema("SAMPLES_SCHEMA")
 populations = PopulationData(config["populations"])
 samples = SampleData(config["samples"])
@@ -64,12 +64,24 @@ except Exception as e:
     logger.error("please run samtools faidx on the reference file!")
     raise
 
+# Map all files found in data/raw to chromosomes
+dataset = __RAW__ / "variants" / cfg.dataset
+variants = dict()
+VCF = "(.vcf.gz|.bcf|.vcf)"
+regex = re.compile(rf"(.*){VCF}$")
+for p in dataset.iterdir():
+    filt = filter(lambda x: regex.match(str(x)), list(p.iterdir()))
+    filt = list(map(lambda x: regex.sub("\\1", str(x.name)), filt))
+    variants[str(p.name)] = filt[0]
 
 ##############################
 ## Wildcard constraints
 ##############################
+BCF = "(.vcf.gz|.bcf)"
+
+
 wildcard_constraints:
-    bcf="(.vcf.gz|.bcf)",
+    bcf=BCF,
     chrom=wildcards_or(cfg.chromosomes),
     dot="(.|)",
     interim=str(__INTERIM__),
@@ -77,8 +89,7 @@ wildcard_constraints:
     prefix="(.+|)",
     results=str(__RESULTS__),
     sample=wildcards_or(cfg.samples.samples, empty=True),
-    suffix="([_\-\.].+|)",
-    vcf="(.vcf.gz|.vcf|.bcf)",
+    vcf=VCF,
 
 
 ##################################################
@@ -92,12 +103,13 @@ def all(wildcards):
 def all_tsinfer(wildcards):
     """Collect all tsinfer targets"""
     out = []
-    for analysis in cfg.analyses("tsinfer"):
-        logger.info(f"Collecting files for tsinfer: {analysis.name}")
-        eda = __RESULTS__ / f"{analysis.name}/{analysis.dataset}/population.eda.html"
-        targz = __RESULTS__ / f"{analysis.name}/{analysis.dataset}/gnn.population.tar.gz"
-        out.append(eda)
-        out.append(targz)
+    out.append(
+        __RESULTS__
+        / "tsinfer"
+        / f"{cfg.analysis}"
+        / f"{cfg.dataset}"
+        / "population.eda.html"
+    )
     return out
 
 
@@ -106,19 +118,35 @@ def all_tsinfer(wildcards):
 ##############################
 def tsinfer_eda_input(wildcards):
     """Return input files for tsinfer eda"""
+    fmt = (
+        Path(f"{wildcards.results}")
+        / "tsinfer"
+        / f"{wildcards.analysis}"
+        / f"{wildcards.dataset}"
+        / "{chrom}"
+        / f"{wildcards.mode}"
+        / "{prefix}"
+    )
     csv = expand(
-        expand(
-            "{{{{results}}}}/{{{{analysis}}}}/{{{{dataset}}}}/{fmt}.gnn.{{{{mode}}}}.csv",
-            fmt=fmt(wildcards),
-        ),
-        chrom=cfg.get_analysis(wildcards.analysis).chromosomes,
+        f"{str(fmt)}.gnn.csv",
+        zip,
+        chrom=cfg.chromosomes,
+        prefix=[str(variants[c]) for c in cfg.chromosomes],
+    )
+    fmt = (
+        __INTERIM__
+        / "tsinfer"
+        / f"{wildcards.analysis}"
+        / f"{wildcards.dataset}"
+        / "infer"
+        / "{chrom}"
+        / "{prefix}"
     )
     trees = expand(
-        expand(
-            __INTERIM__ / "{{{{analysis}}}}/{{{{dataset}}}}/{fmt}.trees",
-            fmt=fmt(wildcards),
-        ),
-        chrom=cfg.get_analysis(wildcards.analysis).chromosomes,
+        f"{str(fmt)}.trees",
+        zip,
+        chrom=cfg.chromosomes,
+        prefix=[variants[c] for c in cfg.chromosomes],
     )
     return {"csv": csv, "trees": trees}
 

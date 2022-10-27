@@ -12,21 +12,21 @@ derive_aa:
 
 chromosomes:
   - '1'
+  - '2'
 
-tsinfer/test:
-  description: >-
-    Test run on chromosome 1, Out of Africa dataset
-  dataset: ooa
-  fmt: ooa_{chrom}_PASS
-  subset:
-    include:
-      population: ["CEU", "CHB", "YRI"]
+description: >-
+  Test run on chromosomes 1 and 2, Out of Africa dataset
+dataset: ooa
+analysis: test
+subset:
+  include:
+    population: ["CEU", "CHB", "YRI"]
 
-relate/test:
-  description: >-
-    Test run on chromosome 1, Out of Africa dataset
-  dataset: ooa
-  fmt: ooa_{chrom}_PASS
-  subset:
-    include:
-      population: ["CEU", "CHB", "YRI"]
+# relate/test:
+#   description: >-
+#     Test run on chromosome 1, Out of Africa dataset
+#   dataset: ooa
+#   fmt: ooa_{chrom}_PASS
+#   subset:
+#     include:
+#       population: ["CEU", "CHB", "YRI"]

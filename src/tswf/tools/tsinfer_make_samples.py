@@ -1,8 +1,10 @@
-"""Run tsinfer workflow
+"""Make tsinfer sample data.
+
+Make tsinfer sample data from VCF file using metadata in SAMPLES and
+POPULATIONS files
 
 """
 import logging
-import re
 
 import click
 import cyvcf2
@@ -30,10 +32,10 @@ def add_diploid_sites(vcf, samples):
             raise ValueError("Unphased genotypes for variant at position", pos)
         alleles = [variant.REF] + variant.ALT
         ancestral = variant.INFO.get("AA", variant.REF)
-        # Ancestral state must be first in the allele list.
+        # Ancestral state must be first in the allele list. NB: can be missing.
         ordered_alleles = [ancestral] + list(set(alleles) - {ancestral})
         # Both alleles may be derived and currently seems to cause the
-        # add_site function to fail; skip for now
+        # add_site function to fail; skip for now. This should work.
         if len(ordered_alleles) > 2:
             continue
         # Skip missing data for now
@@ -108,18 +110,16 @@ def init_vcf(fn, samplenames):
 @click.argument("vcf", type=click.Path(exists=True))
 @click.argument("samplesfile", type=click.Path(exists=True))
 @click.argument("populationfile", type=click.Path(exists=True))
-@click.argument("tsout", type=click.Path(exists=False))
+@click.argument("sampledata", type=click.Path(exists=False))
 @click.option("--threads", type=int, default=1)
 @click.option("chromlength", "--length", type=int)
-def main(vcf, samplesfile, populationfile, tsout, chromlength, threads):
+def main(vcf, samplesfile, populationfile, sampledata, chromlength, threads):
     df_meta = pd.read_table(samplesfile).set_index("SM")
     df_pop = pd.read_table(populationfile).set_index("population")
     print(f"...read {df_meta.shape[0]} entries\n")
     vcf = init_vcf(vcf, df_meta.index.to_list())
 
-    samples_path = re.sub(".trees$", ".samples", tsout)
-
-    with tsinfer.SampleData(path=samples_path, sequence_length=chromlength) as samples:
+    with tsinfer.SampleData(path=sampledata, sequence_length=chromlength) as samples:
         populations = add_populations(vcf, samples, df_meta, df_pop)
         add_diploid_individuals(vcf, samples, populations, df_meta)
         add_diploid_sites(vcf, samples)
@@ -130,13 +130,3 @@ def main(vcf, samplesfile, populationfile, tsout, chromlength, threads):
         + f"with {samples.num_sites} variable sites.",
         flush=True,
     )
-
-    ts = tsinfer.infer(samples, progress_monitor=True, num_threads=threads)
-
-    print(
-        "Inferred tree sequence `{}`: {} trees over {} Mb".format(
-            "ts", ts.num_trees, ts.sequence_length / 1e6
-        )
-    )
-
-    ts.dump(tsout)

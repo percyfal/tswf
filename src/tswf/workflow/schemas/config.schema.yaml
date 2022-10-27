@@ -1,29 +1,59 @@
-$schema: "http://json-schema.org/draft-07/schema#"
+$schema: "http://json-schema.org/2020-12/schema#"
 
 description: snakemake configuration file
 
 type: object
 
 properties:
+  dataset:
+    description: Variant dataset directory in data/raw/variants
+    type: string
+    pattern: "^[^/]+$"
   description:
     description: >-
       Description of analysis.
     type: string
   ref:
-    description: reference sequence
+    description: Reference sequence file
     type: string
     pattern: .+\.(fa|fasta)$
   samples:
     description: >-
-      sample definition file
+      Sample definition file.
+    type: string
+    pattern: .+\.(tsv|csv)$
+  populations:
+    description: >-
+      Population definition file.
     type: string
     pattern: .+\.(tsv|csv)$
   chromosomes:
     description: >-
-      List of chromosomes to analyse. Can be set in analysis section.
+      List of chromosomes to analyse.
     type: array
     items:
       type: string
+  subset:
+    type: object
+    properties:
+      include:
+        patternProperties:
+          '[a-zA-Z0-9_]+':
+            description: >-
+              Keys in sample data frame for selecting subsets of
+              samples. All samples are included if left empty.
+            type: array
+            items:
+              type: string
+      exclude:
+        patternProperties:
+          '[a-zA-Z0-9_]+':
+            description: >-
+              Keys in sample data frame for excluding subsets of
+              samples.
+            type: array
+            items:
+              type: string
   derive_aa:
     type: object
     default: {}
@@ -50,3 +80,5 @@ required:
   - samples
   - chromosomes
   - ref
+  - dataset
+  - analysis

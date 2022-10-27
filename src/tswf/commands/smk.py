@@ -45,4 +45,5 @@ def run(env, profile, jobs, test, snakemake_args):
             options.extend(["--conda-prefix", "$HOME/.snakemake/conda"])
         options.extend(["--directory", str(config.PKG_DIR / "tests")])
     options = " ".join(options)
-    wrappers.snakemake(options=options, snakefile=snakefile, targets="")
+    target = ""
+    wrappers.snakemake(options=options, snakefile=snakefile, targets=target)

@@ -16,28 +16,73 @@ rule bcftools_index:
         "bcftools index --{wildcards.ext} {input} -o {output} > {log} 2>&1"
 
 
+# FIXME: input vcf should depend on whether derive_aa has been set or
+# not
+rule tsinfer_make_samples:
+    """Make tsinfer sample data"""
+    output:
+        samples="{interim}/tsinfer/{analysis}/{dataset}/samples/{chrom}/{prefix}.samples",
+    input:
+        vcf="{interim}/variants/{dataset}/ancestral/{chrom}/{prefix}.vcf.gz",
+        csi="{interim}/variants/{dataset}/ancestral/{chrom}/{prefix}.vcf.gz.csi",
+        samples=str(config["samples"]),
+        populations=str(config["populations"]),
+    log:
+        "logs/{interim}/{analysis}/{dataset}/samples/{chrom}/{prefix}.samples.log",
+    params:
+        length=lambda wildcards: refdict[wildcards.chrom],
+    threads: 1
+    shell:
+        "tswf-tsinfer-make-samples {input.vcf} {input.samples} {input.populations} {output.samples} --length {params.length}"
+
+
 rule tsinfer_infer:
     """Run tsinfer.infer on a group of samples
 
     Generate tskit tree file.
     """
     output:
-        trees="{interim}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.trees",
-        samples="{interim}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.samples",
+        trees="{interim}/tsinfer/{analysis}/{dataset}/infer/{chrom}/{prefix}.trees",
     input:
-        vcf=__RAW__ / "variants/{dataset}/{prefix}{chrom}{suffix}.vcf.gz",
-        csi=__RAW__ / "variants/{dataset}/{prefix}{chrom}{suffix}.vcf.gz.csi",
-        samples=str(config["samples"]),
-        populations=str(config["populations"]),
+        samples="{interim}/tsinfer/{analysis}/{dataset}/samples/{chrom}/{prefix}.samples",
     params:
         length=lambda wildcards: refdict[wildcards.chrom],
     threads: 20
-    envmodules:
-        *envmodules.get("tsinfer_infer", []),
     log:
-        "logs/{interim}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.log",
+        "logs/{interim}/tsinfer/{analysis}/{dataset}/infer/{chrom}/{prefix}.log",
     shell:
-        "tswf-tsinfer {input.vcf} {input.samples} {input.populations} {output.trees} --length {params.length}"
+        "tsinfer infer {input.samples} -O {output.trees} --progress --num-threads {threads}"
+
+
+rule tsinfer_gnn:
+    """Convert tree sequence to gnn"""
+    output:
+        gnn="{results}/tsinfer/{analysis}/{dataset}/{chrom}/{mode}/{prefix}.gnn.csv",
+    input:
+        trees=__INTERIM__ / "tsinfer/{analysis}/{dataset}/infer/{chrom}/{prefix}.trees",
+    wildcard_constraints:
+        mode="(individual|population)",
+    threads: 1
+    log:
+        "logs/{results}/tsinfer/{analysis}/{dataset}/{chrom}/{mode}/{prefix}.gnn.log",
+    shell:
+        "tswf-tsinfer-gnn {input.trees} --output-file {output.gnn} --mode {wildcards.mode}"
+
+
+rule tsinfer_eda:
+    """Make EDA document based on bokeh plots"""
+    output:
+        html="{results}/tsinfer/{analysis}/{dataset}/{mode}.eda.html",
+    input:
+        unpack(tsinfer_eda_input),
+    params:
+        csv=lambda wildcards, input: " ".join([f"--csv {x}" for x in input.csv]),
+        trees=lambda wildcards, input: " ".join([f"--ts {x}" for x in input.trees]),
+    log:
+        "logs/{results}/tsinfer/{analysis}/{dataset}/{mode}.eda.log",
+    threads: 1
+    shell:
+        "tswf-tsinfer-eda {params.csv} {params.trees} --output-file {output.html}"
 
 
 ## FIXME: need to run as script so as to simplify tree sequence to get
@@ -63,25 +108,6 @@ rule tsinfer_infer:
 #         "logs/{interim}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.tsdate.{Ne}.log",
 #     shell:
 #         "tsdate date -v 1 -p -t {threads} {params.options} {input.trees} {output.trees} {wildcards.Ne} 2>&1 > {log}"
-# rule tsinfer_gnn:
-#     """Convert tree sequence to gnn"""
-#     output:
-#         gnn="{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.gnn.{mode}.csv",
-#     input:
-#         trees=__INTERIM__ / "{analysis}/{dataset}/{prefix}{chrom}{suffix}.trees",
-#     wildcard_constraints:
-#         mode="(individual|population)",
-#     threads: 1
-#     resources:
-#         mem_mb=xx_mem_mb,
-#     conda:
-#         "../envs/tsinfer.yaml"
-#     envmodules:
-#         *cfg.ruleconf("tsinfer_gnn").params("envmodules"),
-#     log:
-#         "logs/{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.gnn.{mode}.log",
-#     script:
-#         "../scripts/tsinfer-gnn.py"
 # rule tsinfer_gnn_archive:
 #     """Archive csv output files"""
 #     output:
@@ -93,33 +119,3 @@ rule tsinfer_infer:
 #     threads: 1
 #     shell:
 #         "tar -zcvf {output.targz} {input.csv} > {log}"
-# rule tsinfer_eda:
-#     """Make EDA document based on bokeh plots"""
-#     output:
-#         html="{results}/{analysis}/{dataset}/{mode}.eda.html",
-#     input:
-#         unpack(tsinfer_eda_input),
-#     params:
-#         fmt=fmt,
-#     conda:
-#         "../envs/plotting.yaml"
-#     log:
-#         "logs/{results}/{analysis}/{dataset}/{mode}.eda.log",
-#     threads: 1
-#     script:
-#         "../scripts/tsinfer-eda.py"
-# rule tsinfer_sample_gnn:
-#     """Calculate gnn data for a single sample"""
-#     output:
-#         csv="{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.gnn.{sample}.csv",
-#     input:
-#         trees=__INTERIM__ / "{analysis}/{dataset}/{prefix}{chrom}{suffix}.trees",
-#     threads: 1
-#     conda:
-#         "../envs/tsinfer.yaml"
-#     envmodules:
-#         *cfg.ruleconf("tsinfer_sample_gnn").params("envmodules"),
-#     log:
-#         "logs/{results}/{analysis}/{dataset}/{prefix}{chrom}{suffix}.gnn.{sample}.log",
-#     script:
-#         "../scripts/tsinfer-sample-gnn.py"

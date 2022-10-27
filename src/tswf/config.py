@@ -33,10 +33,8 @@ class SchemaFiles:
     ENVMODULES_SCHEMA = Path("workflow") / "schemas" / "envmodules.schema.yaml"
 
 
-# Need jsonschema>=4 for Draft202012Validator, but jupyter-book
-# depends on jsonschema<4
 DefaultSchemaValidator = jsonschema.validators.extend(
-    jsonschema.validators.Draft7Validator
+    jsonschema.validators.Draft202012Validator,
 )
 
 
