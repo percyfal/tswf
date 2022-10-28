@@ -6,6 +6,7 @@ dependencies:
   - bcftools
   - bokeh
   - cyvcf2
+  - matplotlib
   - pandas
   - pyfaidx
   - python>=3.7

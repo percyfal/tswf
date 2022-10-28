@@ -38,8 +38,6 @@ def run(env, profile, jobs, test, snakemake_args):
         profile = get_profile(profile, env.config)
         options.extend(["--profile", profile])
     if test:
-        if "--use-conda" not in " ".join(options):
-            options.extend(["--use-conda"])
         if "--conda-prefix" not in " ".join(options):
             logger.info("no conda-prefix set; using $HOME/.snakemake/conda")
             options.extend(["--conda-prefix", "$HOME/.snakemake/conda"])
