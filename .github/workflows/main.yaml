@@ -17,7 +17,7 @@ jobs:
         snakefile: src/tswf/workflow/Snakefile
         args: "--lint"
         stagein: >-
-          python -m pip install --no-deps .
+          python -m pip install .
 
   Testing:
     runs-on: ubuntu-latest
@@ -39,7 +39,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
         environment-file: environment.yaml
     - name: Install repo
-      run: python -m pip install --no-deps .
+      run: python -m pip install .
     - name: Test workflow (local test data)
       run: tswf smk run --test
     - name: Test report
