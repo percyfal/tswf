@@ -32,7 +32,9 @@ def main(ctx):
 @click.argument("snakemake_args", nargs=-1, type=click.UNPROCESSED)
 @pass_environment
 def run(env, profile, jobs, test, snakemake_args):
-    options = list(snakemake_args) + ["-j", str(jobs)]
+    options = list(snakemake_args)
+    if "--report" not in options:
+        options += ["-j", str(jobs)]
     snakefile = config.SNAKEMAKE_ROOT / "Snakefile"
     if profile is not None:
         profile = get_profile(profile, env.config)
