@@ -13,7 +13,7 @@ jobs:
     - name: Lint workflow
       uses: snakemake/snakemake-github-action@v1.24.0
       with:
-        directory: src/tswf
+        directory: src/tswf/tests
         snakefile: src/tswf/workflow/Snakefile
         args: "--lint"
         stagein: >-
