@@ -1,8 +1,13 @@
 """tsinfer-eda - exploratory data analysis
 
-Given gnn CSV files, tree sequence files TS, summarize and cluster GNN
-components, calculate fst, and optionally display samples on a map and
-output results to interactive html file.
+Given gnn CSV files and tree sequence files TS generated for the same
+chromosomes, summarize and cluster GNN components, calculate Fst, and
+optionally display samples on a map and output results to interactive
+html file.
+
+Note that CSV and TS files are paired according the order in which
+they are passed to the options, so make sure they follow the order
+they were generated.
 
 """
 import json
@@ -183,8 +188,24 @@ def _fst(key, treefile, population_key, plot_width=700, plot_height=500, visible
 
 
 @click.command(help=__doc__)
-@click.option("--csv", type=click.Path(exists=True), multiple=True)
-@click.option("--ts", type=click.Path(exists=True), multiple=True)
+@click.option(
+    "--gnn",
+    type=click.Path(exists=True),
+    multiple=True,
+    help="GNN csv file for a chromosome",
+)
+@click.option(
+    "--ts",
+    type=click.Path(exists=True),
+    multiple=True,
+    help="tree sequence (TS) file for a chromosome",
+)
+@click.option(
+    "--gnn-ts",
+    type=(click.Path(exists=True), click.Path(exists=True)),
+    multiple=True,
+    help="<GNN csv, TS file> pairs for a chromosome",
+)
 @click.option("--output-file", type=click.Path(), help="output (html) file name")
 @click.option(
     "--population-key",
@@ -193,15 +214,26 @@ def _fst(key, treefile, population_key, plot_width=700, plot_height=500, visible
     help="tree sequence metadata key that defines population name",
 )
 @pass_environment
-def main(env, csv, ts, output_file, population_key):
+def main(env, gnn, ts, gnn_ts, output_file, population_key):
     docwidth = 1200
-    gnn = defaultdict(dict)
-    treefiles = defaultdict(dict)
+
+    assert len(gnn) == len(ts), "must supply same number of GNN csv and TS files"
+    assert (len(gnn_ts) == 0 and len(gnn) > 0) or (len(gnn_ts) > 0 and len(gnn) == 0), (
+        "either supply GNN, TS file pairs with option "
+        "--gnn-ts or separately via --gnn and --ts"
+    )
 
     individuals = None
     first = True
     has_lng_lat = False
-    for csvfile, treefile in zip(csv, ts):
+    if len(gnn) > 0:
+        pairs = zip(gnn, ts)
+    else:
+        pairs = gnn_ts
+
+    gnn = defaultdict(dict)
+    treefiles = defaultdict(dict)
+    for csvfile, treefile in pairs:
         # Chromosome is the directory of the file name
         k = os.path.basename(os.path.dirname(treefile))
         df = pd.read_csv(csvfile)

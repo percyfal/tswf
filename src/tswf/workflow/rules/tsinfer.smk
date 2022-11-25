@@ -76,13 +76,13 @@ rule tsinfer_eda:
     input:
         unpack(tsinfer_eda_input),
     params:
-        csv=lambda wildcards, input: " ".join([f"--csv {x}" for x in input.csv]),
+        gnn=lambda wildcards, input: " ".join([f"--gnn {x}" for x in input.gnn]),
         trees=lambda wildcards, input: " ".join([f"--ts {x}" for x in input.trees]),
     log:
         "logs/{results}/tsinfer/{analysis}/{dataset}/{mode}.eda.log",
     threads: 1
     shell:
-        "tswf-tsinfer-eda {params.csv} {params.trees} --output-file {output.html}"
+        "tswf-tsinfer-eda {params.gnn} {params.trees} --output-file {output.html}"
 
 
 ## FIXME: need to run as script so as to simplify tree sequence to get

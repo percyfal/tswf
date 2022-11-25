@@ -126,7 +126,7 @@ def tsinfer_eda_input(wildcards):
         / f"{wildcards.mode}"
         / "{prefix}"
     )
-    csv = expand(
+    gnn = expand(
         f"{str(fmt)}.gnn.csv",
         zip,
         chrom=cfg.chromosomes,
@@ -147,7 +147,7 @@ def tsinfer_eda_input(wildcards):
         chrom=cfg.chromosomes,
         prefix=[variants[c] for c in cfg.chromosomes],
     )
-    return {"csv": csv, "trees": trees}
+    return {"gnn": gnn, "trees": trees}
 
 
 ##################################################
