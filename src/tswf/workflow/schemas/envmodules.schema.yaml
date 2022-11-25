@@ -1,0 +1,35 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+
+type: object
+
+description: |
+  Envmodules configuration file consisting of key:list mappings. Each
+  entry consists of a list of module names as defined at an HPC. Note
+  that module names will differ between HPCs and that the envmodules
+  file therefore most likely is not portable to other systems. For
+  this, define and/or rely on the conda environments defined in the
+  workflows.
+
+  Environment modules are accessed in snakemake rules via the
+  configuration section config["envmodules"]. The key names are reused
+  across different rules and therefore don't necessarily map to rule
+  names.
+
+  The example below shows module settings as defined at the UPPMAX HPC
+  (https://www.uppmax.uu.se/).
+
+properties:
+  envmodules:
+    type: object
+    default: {}
+    example:
+      bwa:
+        - bwa/0.7.17
+      r:
+        - R/4.2.1
+    patternProperties:
+      '[0-9a-zA-Z\-_]+':
+        type: array
+        items:
+          type: string
+          pattern: '[0-9a-zA-Z\-_/\.]+'

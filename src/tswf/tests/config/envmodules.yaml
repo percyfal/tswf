@@ -1,0 +1,4 @@
+envmodules:
+  bcftools_index:
+    - module1
+    - module2

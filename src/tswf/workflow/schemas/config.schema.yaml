@@ -1,0 +1,129 @@
+$schema: "http://json-schema.org/2020-12/schema#"
+
+description: |
+  Snakemake configuration file.
+
+type: object
+
+properties:
+  dataset:
+    description: Variant dataset directory in data/raw/variants
+    type: string
+    pattern: "^[^/]+$"
+    example: ooa
+  description:
+    description: >-
+      Description of analysis.
+    type: string
+    example: |
+      Test run on chromosomes 1 and 2, Out of Africa dataset
+  ref:
+    description: Reference sequence file
+    type: string
+    pattern: .+\.(fa|fasta)$
+    example: resources/ref_tsk_CHB_0.fa
+  samples:
+    description: >-
+      Sample definition file. See example output from 'tswf config
+      example samples'.
+    type: string
+    pattern: .+\.(tsv|csv)$
+    example: resources/samples.tsv
+  populations:
+    description: >-
+      Population definition file. See example output from 'tswf config
+      example populations'.
+    type: string
+    pattern: .+\.(tsv|csv)$
+    example: resources/populations.tsv
+  chromosomes:
+    description: >-
+      List of chromosomes to analyse.
+    type: array
+    items:
+      type: string
+    example:
+      - '1'
+      - '2'
+  subset:
+    description: |
+      Apply analyses to subset of input data. This can be useful to
+      exclude samples of poor quality, or subset an analysis to only
+      look at specific populations.
+    type: object
+    properties:
+      include:
+        patternProperties:
+          '[a-zA-Z0-9_]+':
+            description: >-
+              Keys in sample data frame for selecting subsets of
+              samples. All samples are included if left empty.
+            type: array
+            items:
+              type: string
+        example:
+          population:           # Skip CEU population in this analysis
+            - "CHB"
+
+      exclude:
+        patternProperties:
+          '[a-zA-Z0-9_]+':
+            description: >-
+              Keys in sample data frame for excluding subsets of
+              samples.
+            type: array
+            items:
+              type: string
+        example:
+          SM:
+            - "tsk_11"   # Possibly low quality
+  derive_aa:
+    type: object
+    default: {}
+    description: |
+      Configuration section for derivation of ancestral allele states
+      from outgroup sequences (see tsinfer-get-ancestral-allele).
+      Briefly, an ancestral state will be set if, in the outgroups, a
+      minimum number of alleles agree on a state (option min-alleles
+      below). See script documentation for complete list of options
+      (tsinfer-get-ancestral-state --help).
+    properties:
+      method:
+        type: string
+        default: 'vote'
+        enum: ['vote'] ## Add methods suggested on tsinfer list here
+        description: |
+          Method to use to decide on ancestral state. Currently only
+          supports 'vote'.
+      options:
+        type: object
+        default: {}
+        example:
+          min-alleles: 4   # Minimum number of observed alleles to decide on ancestral state.
+        description: |
+          Options provided as key:value pairs that are passed to
+          tsinfer-get-ancestral-state.
+      outgroups:
+        type: array
+        default: []
+        description: |
+          Sample identifiers of outgroup samples. Note that these
+          samples must be present in the input vcf file.
+        items:
+          type: string
+          uniqueItems: true
+        example:
+          - tsk_19 # Chimp
+          - tsk_20 # Gorilla
+          - tsk_21 # Orangutan
+    additionalProperties: false
+
+
+
+# entries that have to be in the config file for successful validation
+required:
+  - samples
+  - chromosomes
+  - ref
+  - dataset
+  - analysis
