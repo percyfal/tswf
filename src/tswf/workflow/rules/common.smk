@@ -27,11 +27,7 @@ schema.validate(envmodules)
 ##############################
 # Core configuration
 ##############################
-# FIXME: remove
-# include: "core/config.py"
-
-
-##### load config and sample sheets #####
+# load config and sample sheets
 schema = get_schema("WORKFLOW_CONFIGURATION_SCHEMA")
 
 
@@ -42,8 +38,11 @@ schema.validate(config)
 
 schema = get_schema("SAMPLES_SCHEMA")
 populations = PopulationData(config["populations"])
+schema.validate(populations)
+schema = get_schema("SAMPLES_SCHEMA")
 samples = SampleData(config["samples"])
 samples.merge(populations, left_on="population", right_index=True)
+schema.validate(samples)
 
 # Add git information
 add_gitinfo(config, workflow)

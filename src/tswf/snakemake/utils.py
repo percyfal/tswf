@@ -44,6 +44,15 @@ def test_opt():
     )
 
 
+def testdir_opt():
+    """Add test directory option option"""
+    return click.option(
+        "--testdir",
+        type=click.Path(),
+        help="setup workflow test in test directory",
+    )
+
+
 def directory_opt():
     """Add snakemake directory option"""
     return click.option(

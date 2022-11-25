@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import copy
+import csv
 import json
 import logging
 import pprint
-import re
 import types
 from collections import OrderedDict
 from pathlib import Path
@@ -96,11 +96,12 @@ class Schema:
             raise
         return row
 
-    def dump_properties(self, comments=True, comment_column=40) -> dict:
+    def dump_properties(self, comments=True, comment_column=40, example=False) -> dict:
         """Dump schema properties as dict.
 
         :param bool comments: include comments in output
         :param int comment_column: inline comments are placed in this column
+        :param bool example: use property examples instead of defaults
         :return: A dictionary of properties and possibly  descriptions.
 
         :rtype: dict
@@ -111,7 +112,10 @@ class Schema:
             raise NotImplementedError
 
         header = self.asdict().get("description", "")
-        properties.yaml_set_start_comment(header)
+        try:
+            properties.yaml_set_start_comment(header)
+        except IndexError:
+            pass
 
         def update_properties(props, section, level):
             if isinstance(section, str):
@@ -119,7 +123,7 @@ class Schema:
             if isinstance(section, dict):
                 for k, v in section.items():
                     if isinstance(v, dict):
-                        desc = re.sub("\n", " ", v.get("description", None))
+                        desc = v.get("description", "")
                         if "properties" in v.keys():
                             props[k] = ruamel.yaml.comments.CommentedMap()
                             props[k] = update_properties(
@@ -128,7 +132,10 @@ class Schema:
                             props.yaml_set_comment_before_after_key(before="\n", key=k)
                             props.yaml_set_comment_before_after_key(before=desc, key=k)
                         else:
-                            props[k] = v.get("default", None)
+                            if example:
+                                props[k] = v.get("example", v.get("default", None))
+                            else:
+                                props[k] = v.get("default", None)
                             if level == 0:
                                 props.yaml_set_comment_before_after_key(
                                     before="\n", key=k
@@ -137,9 +144,12 @@ class Schema:
                                     before=desc, key=k
                                 )
                             else:
-                                props.yaml_add_eol_comment(
-                                    desc, k, column=comment_column
-                                )
+                                try:
+                                    props.yaml_add_eol_comment(
+                                        desc, k, column=comment_column
+                                    )
+                                except IndexError:
+                                    pass
             return props
 
         properties = update_properties(
@@ -229,13 +239,29 @@ class Config(PropertyDict):
         return data
 
     @classmethod
-    def from_schema(cls, schema, file=None, **kwargs):
-        props = schema.dump_properties()
+    def from_schema(cls, schema, file=None, tsv=False, example=False, **kwargs):
+        props = schema.dump_properties(example=example)
         props.update(**kwargs)
-
-        cls._dump_yaml(props, file)
+        if tsv:
+            cls._dump_tsv(props, file)
+        else:
+            cls._dump_yaml(props, file)
 
         return Config(props)
+
+    @classmethod
+    def _dump_tsv(cls, d, file=None):
+        if file is None:
+            return
+        writer = csv.DictWriter(file, fieldnames=d.keys(), delimiter="\t")
+        writer.writeheader()
+        allvals = []
+        for _, v in d.items():
+            allvals.append(v)
+        rows = zip(*allvals)
+        for r in rows:
+            dd = dict(zip(d.keys(), r))
+            writer.writerow(dd)
 
     @classmethod
     def _dump_yaml(cls, d, file=None):

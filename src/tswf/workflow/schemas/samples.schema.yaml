@@ -1,22 +1,28 @@
 $schema: "http://json-schema.org/draft-07/schema#"
 
-description: an entry in the sample sheet
+description: |
+  An entry in the sample sheet.
 properties:
   SM:
     type: string
     description: sample name/identifier
+    example: [tsk_1, tsk_7, tsk_19, tsk_20, tsk_21]
   population:
     type: string
     description: sample population
+    example: [CHB, CEU, chimp, gorilla, orangutan]
   name:
     type: string
     description: alternative sample name
+    example: [chb1, ceu1, "", "", ""]
   latitude:
     type: ['null', number]
     description: sampling latitude
+    example: [39, 40, "", "", ""]
   longitude:
     type: ['null', number]
     description: sampling longitude
+    example: [116, 14, "", "", ""]
 
 
 patternProperties:

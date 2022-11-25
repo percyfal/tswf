@@ -1,22 +1,32 @@
 $schema: "http://json-schema.org/draft-07/schema#"
 
-description: an entry in the population data sheet
+description: |
+  An entry in the population data sheet.
 properties:
   population:
     type: string
     description: population name/identifier
+    example: ["CHB", "CEU", "chimp"]
   genus:
     type: string
     description: population genus
+    example: ["Homo", "Homo", "Pan"]
   species:
     type: string
     description: species name
+    example: ["Homo sapiens", "Homo sapiens", "Pan troglodytes"]
   subspecies:
     type: string
     description: subspecies name
+    example: ["han", "utah", "chimp"]
   common.name:
     type: string
     description: common name
+    example: ["human", "human", "chimp"]
+  description:
+    type: string
+    description: description field
+    example: ["Han Chinese", "Utah HapMap population", "Congo population"]
 
 # columns that the config/samples.tsv file must have to pass schema validation
 required:

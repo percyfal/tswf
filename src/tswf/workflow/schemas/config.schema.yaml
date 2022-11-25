@@ -1,6 +1,7 @@
 $schema: "http://json-schema.org/2020-12/schema#"
 
-description: snakemake configuration file
+description: |
+  Snakemake configuration file.
 
 type: object
 
@@ -9,31 +10,44 @@ properties:
     description: Variant dataset directory in data/raw/variants
     type: string
     pattern: "^[^/]+$"
+    example: ooa
   description:
     description: >-
       Description of analysis.
     type: string
+    example: |
+      Test run on chromosomes 1 and 2, Out of Africa dataset
   ref:
     description: Reference sequence file
     type: string
     pattern: .+\.(fa|fasta)$
+    example: resources/ref_tsk_CHB_0.fa
   samples:
     description: >-
       Sample definition file.
     type: string
     pattern: .+\.(tsv|csv)$
+    example: resources/samples.tsv
   populations:
     description: >-
       Population definition file.
     type: string
     pattern: .+\.(tsv|csv)$
+    example: resources/populations.tsv
   chromosomes:
     description: >-
       List of chromosomes to analyse.
     type: array
     items:
       type: string
+    example:
+      - '1'
+      - '2'
   subset:
+    description: |
+      Apply analyses to subset of input data. This can be useful to
+      exclude samples of poor quality, or subset an analysis to only
+      look at specific populations.
     type: object
     properties:
       include:
@@ -45,6 +59,11 @@ properties:
             type: array
             items:
               type: string
+        example:
+          population:
+            - "CEU"
+            - "CHB"
+            - "YRI"
       exclude:
         patternProperties:
           '[a-zA-Z0-9_]+':
@@ -54,6 +73,9 @@ properties:
             type: array
             items:
               type: string
+        example:
+          SM:
+            - "tsk_11"
   derive_aa:
     type: object
     default: {}
@@ -65,12 +87,18 @@ properties:
       options:
         type: object
         default: {}
+        example:
+          min-alleles: 4
       outgroups:
         type: array
         default: []
         items:
           type: string
           uniqueItems: true
+        example:
+          - tsk_19 # Chimp
+          - tsk_20 # Gorilla
+          - tsk_21 # Orangutan
     additionalProperties: false
 
 
