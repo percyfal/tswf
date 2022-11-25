@@ -27,6 +27,7 @@ class ConfigError(Exception):
 
 class SchemaFiles:
     CONFIGURATION_SCHEMA = Path("schemas") / "config.schema.yaml"
+    SNAKEMAKE_PROFILE_SCHEMA = Path("schemas") / "profile.schema.yaml"
     WORKFLOW_CONFIGURATION_SCHEMA = Path("workflow") / "schemas" / "config.schema.yaml"
     SAMPLES_SCHEMA = Path("workflow") / "schemas" / "samples.schema.yaml"
     POPULATIONS_SCHEMA = Path("workflow") / "schemas" / "populations.schema.yaml"
@@ -145,8 +146,8 @@ class Schema:
                                 )
                             else:
                                 try:
-                                    props.yaml_add_eol_comment(
-                                        desc, k, column=comment_column
+                                    props.yaml_set_comment_before_after_key(
+                                        before=desc, key=k, indent=level * 2
                                     )
                                 except IndexError:
                                     pass

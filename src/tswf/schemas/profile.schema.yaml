@@ -1,0 +1,113 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+
+description: |
+  Snakemake profile schema. Provides a mapping of some common
+  snakemake options to schema configuration. The profile configuration
+  file is a key:value mapping so any options not listed here can be
+  added to the configuration file.
+
+  The generated example assumes the profile is generated manually and
+  therefore is restricted to local execution. To access more advanced
+  configurations, see the cookiecutter profile page at
+  https://github.com/Snakemake-Profiles.
+
+properties:
+  restart-times:
+    description: |
+      Number of times to restart failing jobs
+    type: integer
+    default: 1
+  max-jobs-per-second:
+    default: 1
+    description: |
+      Maximal number of cluster/drmaa jobs per second, fractions
+      allowed.
+    type: number
+  max-status-checks-per-second:
+    default: 10
+    description: |
+      Maximal number of job status checks per second, fractions
+      allowed.
+    type: number
+  local-cores:
+    default: 1
+    description: |
+      In cluster/cloud mode, use at most N cores of the host machine
+      in parallel (default: number of CPU cores of the host). The
+      cores are used to execute local rules. This option is ignored
+      when not in cluster/cloud mode.
+    type: integer
+  latency-wait:
+    default: 60
+    description: |
+      Wait given seconds if an output file of a job is not present
+      after the job finished. This helps if your filesystem suffers
+      from latency.
+    type: integer
+  use-envmodules:
+    default: true
+    description: |
+       If defined in the rule, run job within the given environment
+       modules, loaded in the given order. This can be combined with
+       --use-conda and --use- singularity, which will then be only
+       used as a fallback for rules which don't define environment
+       modules.
+    type: boolean
+  use-conda:
+    default: true
+    description: |
+      If defined in the rule, run job in a conda environment. If this
+      flag is not set, the conda directive is ignored.
+    type: boolean
+  default-resources:
+    type: array
+    items:
+      type: string
+    description: |
+      Define default values of resources for rules that do not define
+      their own values. In addition to plain integers, python
+      expressions over inputsize are allowed (e.g.
+      '2*input.size_mb').When specifying this without any arguments
+      (--default-resources), it defines 'mem_mb=max(2*input.size_mb,
+      1000)' 'disk_mb=max(2*input.size_mb, 1000)' i.e., default disk
+      and mem usage is twice the input file size but at least 1GB.In
+      addition, the system temporary directory (as given by $TMPDIR,
+      $TEMP, or $TMP) is used for the tmpdir resource. The tmpdir
+      resource is automatically used by shell commands, scripts and
+      wrappers to store temporary data (as it is mirrored into
+      $TMPDIR, $TEMP, and $TMP for the executed subprocesses). If this
+      argument is not specified at all, Snakemake just uses the tmpdir
+      resource as outlined above.
+    example:
+      default-resources:
+        - runtime=100
+        - mem_mb=6000
+        - disk_mb=10000
+  set-threads:
+    type: array
+    items:
+      type: string
+    description: |
+      Overwrite thread usage of rules. This allows to fine- tune
+      workflow parallelization. In particular, this is helpful to
+      target certain cluster nodes by e.g. shifting a rule to use
+      more, or less threads than defined in the workflow. Thereby,
+      THREADS has to be a positive integer, and RULE has to be the
+      name of the rule.
+    example:
+      set-threads:
+        - tsinfer_infer=20
+  set-resources:
+    type: array
+    items:
+      type: string
+    description: |
+      Overwrite resource usage of rules. This allows to fine-tune
+      workflow resources. In particular, this is helpful to target
+      certain cluster nodes by e.g. defining a certain partition for a
+      rule, or overriding a temporary directory. Thereby, VALUE has to
+      be a positive integer or a string, RULE has to be the name of
+      the rule, and RESOURCE has to be the name of the resource.
+    example:
+      set-resources:
+        - tsinfer_infer:runtime=1200

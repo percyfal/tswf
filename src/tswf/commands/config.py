@@ -51,8 +51,10 @@ def init(env, config_file, show):
 
 @main.command()
 @click.argument(
-    "configuration_schema",
-    type=click.Choice(("main", "samples", "populations", "envmodules", "workflow")),
+    "configuration",
+    type=click.Choice(
+        ("main", "samples", "populations", "envmodules", "workflow", "profile")
+    ),
     default="main",
 )
 @click.option(
@@ -64,7 +66,7 @@ def init(env, config_file, show):
     ),
 )
 @pass_environment
-def example(env, configuration_schema, as_yaml):
+def example(env, configuration, as_yaml):
     """Show example configuration files."""
     conf_map = {
         "main": "CONFIGURATION_SCHEMA",
@@ -72,24 +74,23 @@ def example(env, configuration_schema, as_yaml):
         "populations": "POPULATIONS_SCHEMA",
         "envmodules": "ENVMODULES_SCHEMA",
         "workflow": "WORKFLOW_CONFIGURATION_SCHEMA",
+        "profile": "SNAKEMAKE_PROFILE_SCHEMA",
     }
     kwargs = {}
     tsv = False
-    schema = get_schema(conf_map[configuration_schema])
+    schema = get_schema(conf_map[configuration])
     schemafile = pkg_resources.resource_filename(
-        "tswf", str(getattr(SchemaFiles, conf_map[configuration_schema]))
+        "tswf", str(getattr(SchemaFiles, conf_map[configuration]))
     )
 
     required = schema._schema.get("required", None)
-    if configuration_schema == "main":
+    if configuration == "main":
         kwargs = {"project_name": env.home.name}
-    if configuration_schema in ["samples", "populations"] and not as_yaml:
+    if configuration in ["samples", "populations"] and not as_yaml:
         tsv = True
 
     print()
-    print(
-        f"#\n# Showing example configuration for schema {conf_map[configuration_schema]}"
-    )
+    print(f"#\n# Showing example configuration for schema {conf_map[configuration]}")
     print(f"# See schema file {schemafile} for more details.\n#")
     if tsv:
         print("# Use option --as-yaml to see column descriptions.\n#")
