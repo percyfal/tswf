@@ -1,11 +1,13 @@
-# Snakemake workflow: wg-genealogy-smk
+# Tree sequence workflow - tswf
 
-[![Snakemake](https://img.shields.io/badge/snakemake-≥6.8.0-brightgreen.svg)](https://snakemake.bitbucket.io)
-[![Tests](https://github.com/percyfal/wg-genealogy-smk/actions/workflows/main.yaml/badge.svg)](https://github.com/percyfal/wg-genealogy-smk/actions/workflows/main.yaml)
+[![Snakemake](https://img.shields.io/badge/snakemake-≥7.0-brightgreen.svg)](https://snakemake.bitbucket.io)
+[![Tests](https://github.com/percyfal/wg-genealogy-smk/actions/workflows/main.yaml/badge.svg)](https://github.com/percyfal/tswf/actions/workflows/main.yaml)
 
 ## About
 
-Snakemake workflow for whole genome genealogy analyses. Supported methods include:
+Python package consisting of snakemake workflow and utilities for
+whole genome genealogy analyses, with a focus on tree sequencing data.
+Supported methods include:
 
 - [tsinfer](https://github.com/tskit-dev/tsinfer "tree sequence inference")
 - [Relate](https://myersgroup.github.io/relate/ "estimate genome-wide genealogies")
@@ -21,9 +23,27 @@ nearest neighbours and produce interactive plots with
 
 ## Installation
 
-Easiest is to install with pip:
+Easiest is to install with pip, possibly in a conda environment:
 
-	python -m pip install git+https://github.com/percyfal/tswf@pyproject
+	mamba create -n tswf python=3.10
+	python -m pip install git+https://github.com/percyfal/tswf
+
+### Dependencies
+
+Until there is a conda package, you need to install the dependencies
+manually.
+
+	mamba install snakemake-minimal bcftools bokeh=2.4.3 scipy matplotlib
+
+
+## Quickstart
+
+Run
+
+	tswf quickstart
+
+for information on how to initialize an analysis, setup configuration
+files and more.
 
 ## Usage
 
@@ -36,9 +56,11 @@ The workflow and additional commands run via the main entry point:
 
 See the subcommand help for more information.
 
+
 ## Authors
 
 * Per Unneberg (@percyfal)
+
 
 
 ## Configuration

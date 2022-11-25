@@ -21,11 +21,15 @@ classifiers = [
 ]
 dependencies = [
     'click>=8.0',
+    'cyvcf2',
     'importlib-metadata; python_version>="3.7"',
     'jinja2',
     'jsonschema',
+    'numpy',
+    'pandas',
     'pypandoc',
-    'ruamel.yaml'
+    'ruamel.yaml',
+    'tsinfer'
 ]
 dynamic = ["version"]
 
