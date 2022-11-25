@@ -118,6 +118,14 @@ See the configuration schema file
 `tswf config example envmodules` for more information.
 
 
+## Scripts
+
+There are several tools that are run by the workflow that are also
+available as standalone scripts. All scripts are prefixed with
+`tswf-`, and available scripts can be found by pressing `tswf-`
+followed by `<TAB>`. For instance, `tswf-get-ancestral-allele` is a
+script for inferring ancestral alleles in a vcf file.
+
 ## Testing
 
 Test cases are in the subfolder `tests` in the source distribution and

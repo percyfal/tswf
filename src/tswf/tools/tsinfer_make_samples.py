@@ -1,7 +1,7 @@
 """Make tsinfer sample data.
 
-Make tsinfer sample data from VCF file using metadata in SAMPLES and
-POPULATIONS files
+Make tsinfer sample data output file SAMPLEDATA from VCF file using
+metadata in SAMPLESFILE and POPULATIONFILE files.
 
 """
 import logging
