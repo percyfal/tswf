@@ -103,7 +103,7 @@ class Schema:
         :param bool comments: include comments in output
         :param int comment_column: inline comments are placed in this column
         :param bool example: use property examples instead of defaults
-        :return: A dictionary of properties and possibly  descriptions.
+        :return: A dictionary of properties and possibly descriptions.
 
         :rtype: dict
         """
