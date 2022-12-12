@@ -49,7 +49,7 @@ files and more.
 
 The workflow and additional commands run via the main entry point:
 
-	tswf -h
+	tswf --help
 	tswf config example workflow
 	tswf smk run -j 1
 	tswf smk run -j 1 --use-envmodules --envmodules-file=envmodules.yaml
