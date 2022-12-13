@@ -55,6 +55,8 @@ class Data:
                 self._data = args.data
             elif isinstance(args, str):
                 self._read_tsv(args)
+            elif isinstance(args, pd.DataFrame):
+                self._data = args
         elif len(args) > 1:
             assert all(isinstance(x, Data) for x in args), logger.error(
                 "all instances must be Data"
@@ -67,7 +69,11 @@ class Data:
             self._data.set_index(self._index, drop=True, inplace=True)
         except Exception:
             pass
-        self.schema.validate(self.data.reset_index())
+        if isinstance(self.data, pd.DataFrame):
+            for _, record in enumerate(self.data.reset_index().to_dict("records")):
+                self.schema.validate(record)
+        else:
+            self.schema.validate(self.data.reset_index())
 
     def _read_tsv(self, infile):
         sep = ","

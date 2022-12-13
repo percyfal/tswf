@@ -38,12 +38,9 @@ schema.validate(config)
 
 schema = get_schema("SAMPLES_SCHEMA")
 populations = PopulationData(config["populations"])
-schema.validate(populations)
 schema = get_schema("SAMPLES_SCHEMA")
 samples = SampleData(config["samples"])
-schema.validate(samples)
 samples.merge(populations, left_on="population", right_index=True)
-schema.validate(samples)
 
 # Add git information
 add_gitinfo(config, workflow)
