@@ -73,7 +73,9 @@ class Data:
         sep = ","
         if infile.endswith(".tsv"):
             sep = "\t"
-        self._data = pd.read_csv(infile, sep=sep).set_index(self._index, drop=False)
+        self._data = pd.read_csv(infile, sep=sep, comment="#").set_index(
+            self._index, drop=False
+        )
         self._data = self._data.replace({np.nan: None})
         self._data.index.names = self._index
 
