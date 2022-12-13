@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install dependencies to lmdb
-      run: sudo apt-get install libffi-dev python-dev build-essential
+      run: sudo apt-get install libffi-dev build-essential
     - name: Lint workflow
       uses: snakemake/snakemake-github-action@v1.24.0
       with:
