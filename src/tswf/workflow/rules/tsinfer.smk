@@ -30,7 +30,7 @@ rule tsinfer_make_samples:
     log:
         "logs/{interim}/{analysis}/{dataset}/samples/{chrom}/{prefix}.samples.log",
     params:
-        length=lambda wildcards: refdict[wildcards.chrom],
+        length=get_chrom_length,
     threads: 1
     shell:
         "tswf-tsinfer-make-samples {input.vcf} {input.samples} {input.populations} {output.samples} --length {params.length}"
@@ -46,7 +46,7 @@ rule tsinfer_infer:
     input:
         samples="{interim}/tsinfer/{analysis}/{dataset}/samples/{chrom}/{prefix}.samples",
     params:
-        length=lambda wildcards: refdict[wildcards.chrom],
+        length=get_chrom_length,
     threads: 20
     log:
         "logs/{interim}/tsinfer/{analysis}/{dataset}/infer/{chrom}/{prefix}.log",

@@ -128,7 +128,7 @@ def tsinfer_eda_input(wildcards):
         f"{str(fmt)}.gnn.csv",
         zip,
         chrom=cfg.chromosomes,
-        prefix=[str(variants[c]) for c in cfg.chromosomes],
+        prefix=[str(get_variants(c)) for c in cfg.chromosomes],
     )
     fmt = (
         __INTERIM__
@@ -143,7 +143,7 @@ def tsinfer_eda_input(wildcards):
         f"{str(fmt)}.trees",
         zip,
         chrom=cfg.chromosomes,
-        prefix=[variants[c] for c in cfg.chromosomes],
+        prefix=[get_variants(c) for c in cfg.chromosomes],
     )
     return {"gnn": gnn, "trees": trees}
 
@@ -156,3 +156,27 @@ def fmt(wildcards):
     if len(cfg.derive_aa.outgroups) != 0:
         value = value + f"_AA_{cfg.derive_aa.method}"
     return value
+
+
+##############################
+# Utility functions
+##############################
+def get_chrom_length(wildcards):
+    try:
+        ret = refdict[wildcards.chrom]
+    except KeyError:
+        logger.error(f"No such chromosome name {wildcards.chrom} in reference dictionary")
+        logger.error(
+            "Make sure names of chromosome directories and reference sequence correspond"
+        )
+        raise
+    return ret
+
+
+def get_variants(chrom):
+    try:
+        ret = variants[chrom]
+    except KeyError:
+        logger.error(f"No such directory {chrom} in data/raw/variants")
+        raise
+    return ret

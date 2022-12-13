@@ -28,7 +28,7 @@ properties:
 patternProperties:
   '[a-zA-Z0-9_\.]+':
     description: additional metadata column
-    type: [string, number]
+    type: ['null', string, number]
 
 required:
   - SM
