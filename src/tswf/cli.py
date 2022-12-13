@@ -61,7 +61,9 @@ def cli(env, config_file):
         logging.getLogger().setLevel(logging.DEBUG)
     if config_file is None:
         env.home = pathlib.Path(os.curdir).absolute()
-        config_file = env.home / "tswf.yaml"
+        config_file = env.home / f"{env.home.name}.yaml"
+        if not os.path.exists(config_file):
+            config_file = env.home / "tswf.yaml"
     else:
         config_file = pathlib.Path(config_file).absolute()
         env.home = config_file.parent

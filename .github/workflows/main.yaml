@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+    - name: Install patch
+      run: sudo apt-get install patch
     - name: Lint workflow
       uses: snakemake/snakemake-github-action@v1.24.0
       with:

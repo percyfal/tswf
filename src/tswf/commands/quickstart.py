@@ -2,17 +2,19 @@
 
 ## Project initialization
 
-Create a directory for your analyses, cd to the directory and
+Start by creating a project configuration file as follows. Create a
+directory <project_name> for your analyses, cd to the directory and
 initialize the tswf configuration file:
     \b
     tswf config init
 
-Currently the workflow configuration defines project name and
-snakemake profiles (see below).
+By default, this will create a project configuration file named
+<project_name>.yaml. Currently the workflow configuration defines
+project name and snakemake profiles (see below).
 
 ## Snakemake workflow
 
-The snakemake workflow is run with the command
+The snakemake workflow can be run with the command
     \b
     tswf smk run
 
@@ -20,10 +22,22 @@ To get an idea what the workflow does, run the test
     \b
     tswf smk run --test
 
+Running the snakemake workflow requires creating a number of
+configuration and sample files:
+
+1. a snakemake configuration file (default: config/config.yaml)
+2. a samplesheet file (default: resources/samples.tsv)
+3. a population definition file (default: resources/populations.tsv)
+4. (OPTIONAL): a snakemake profile (e.g., config/<profile>/config.yaml)
+
+The following sections describe in more detail how to generate example
+files, what their purpose is, and where to install them.
+
 ### Configuration
 
-Create a configuration file config/config.yaml. You can generate an
-example file with
+The workflow configuration is typically located at config/config.yaml
+and contains run parameter settings that you can customize for your
+analyses. You can generate an example file with
     \b
     mkdir -p config
     tswf config example workflow > config/config.yaml
@@ -46,27 +60,52 @@ with '.vcf.gz' or '.bcf.'
 
 ### Snakemake profiles
 
-You can define snakemake profile locations in the tswf configuration
-file. The snakemake profile section allows defining multiple profiles
-that you can switch between using the --profile option.
+Snakemake profiles
+(https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles)
+allow tailoring of snakemake options for specific compute
+environments. In their most basic form, they consist of a directory
+<profile> with a configuration file config.yaml that maps snakemake
+options to values. You can also specify resource requirements for
+rules, such as runtime and memory usage, which comes in handy when
+submitting jobs to a cluster. To facilitate generation of profiles
+tailored for HPC job managers, see the snakemake cookiecutter profile
+page <https://github.com/Snakemake-Profiles>. For instance, to install
+a SLURM configuration profile in config/slurm, install cookiecutter
+and run
+    \b
+    mkdir -p config/slurm
+    cookiecutter --output-dir config/slurm gh:Snakemake-Profiles/slurm
 
-To get started, you can generate a local profile with
+Although you can pass the path to the profile to snakemake, to save
+typing, you can also define the location of your snakemake profiles in
+the tswf configuration file itself. The snakemake profile section
+allows defining multiple profiles that you can switch between using
+the --profile option. Using the slurm profile above as an example, you
+would set the 'snakemake-profile' configuration section in the tswf main
+configuration file (<project_name>.yaml) to
+    \b
+    snakemake-profiles:
+      slurm: config/slurm
+
+Now you can activate the profile with
+    \b
+    tswf smk run --profile slurm
+
+tswf provides a configuration example for a *local* profile (i.e., not
+for cluster submission). To generate such a profile do
     \b
     mkdir -p config/local
     tswf config example profile > config/local/config.yaml
 
-and set the 'snakemake-profile' configuration section to
+and as before, set the 'snakemake-profile' configuration section in
+the tswf main configuration file:
     \b
     snakemake-profiles:
       local: config/local
 
-Now you can activate the profile with
+Now you can activate the local profile with
     \b
     tswf smk run --profile local
-
-To facilitate generation of profiles tailored for HPC job managers,
-see the snakemake cookiecutter profile page
-<https://github.com/Snakemake-Profiles>.
 
 """
 import logging
