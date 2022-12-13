@@ -1,5 +1,9 @@
 """# Quickstart (WIP).
 
+See the repo README for additional information
+(https://github.com/percyfal/tswf).
+
+
 ## Project initialization
 
 Start by creating a project configuration file as follows. Create a
@@ -106,6 +110,18 @@ the tswf main configuration file:
 Now you can activate the local profile with
     \b
     tswf smk run --profile local
+
+### Environment modules
+
+If you use the snakemake flag --use-envmodules (in profile
+configuration set "use-envmodules: true"), snakemake will use
+environment modules for deployment (see
+https://snakemake.readthedocs.io/en/stable/snakefiles/deployment.html#using-environment-modules).
+All tswf rules can be configured to use environment modules.
+Configurations are stored in an environment configuration file
+(default: config/envmodules.yaml). An example can be generated with
+    \b
+    tswf config example envmodules
 
 """
 import logging
