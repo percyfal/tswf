@@ -19,7 +19,7 @@ jobs:
           snakefile: src/tswf/workflow/Snakefile
           args: "--lint"
           stagein: >-
-            python -m pip install .
+            python -m pip install -e .
 
   Testing:
     runs-on: ubuntu-latest
