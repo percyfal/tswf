@@ -32,7 +32,7 @@ Easiest is to install with pip, possibly in a conda environment:
 Until there is a conda package, you need to install the dependencies
 manually.
 
-    mamba install snakemake-minimal bcftools bokeh=2.4.3 scipy matplotlib
+    mamba install -c conda-forge -c bioconda -c default  snakemake-minimal bcftools bokeh=2.4.3 scipy matplotlib
 
 ## Quickstart
 
