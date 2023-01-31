@@ -18,7 +18,7 @@ jobs:
           directory: src/tswf/tests
           snakefile: src/tswf/workflow/Snakefile
           args: "--lint"
-          stagein: "mamba install -c conda-forge -c bioconda -c default snakemake-minimal bcftools bokeh=2.4.3 scipy matplotlib tsinfer; python -m pip install ."
+          stagein: "mamba install -c conda-forge -c bioconda -c default snakemake-minimal bcftools bokeh=2.4.3 scipy matplotlib tsinfer; python -m pip install --no-deps ."
 
   Testing:
     runs-on: ubuntu-latest
