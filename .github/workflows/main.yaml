@@ -13,7 +13,7 @@ jobs:
       - name: Install dependencies to lmdb
         run: sudo apt-get install libffi-dev build-essential
       - name: Lint workflow
-        uses: snakemake/snakemake-github-action@v1.23.0
+        uses: snakemake/snakemake-github-action@v1.24.0
         with:
           directory: src/tswf/tests
           snakefile: src/tswf/workflow/Snakefile
