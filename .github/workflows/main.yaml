@@ -18,6 +18,8 @@ jobs:
           miniconda-version: "latest"
           environment-file: conda-linux-64.lock
           use-only-tar-bz2: true
+      - name: Install repo
+        run: python -m pip install .
       - name: Lint workflow
         uses: snakemake/snakemake-github-action@v1.24.0
         with:
