@@ -18,7 +18,7 @@ properties:
 
           tswf smk run --profile local
 
-    type: [object, 'null']
+    type: [object, "null"]
     example:
       local: config/local
     patternProperties:

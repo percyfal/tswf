@@ -2,7 +2,7 @@ ref: "resources/ref_tsk_CHB_0.fa"
 samples: "resources/samples.tsv"
 populations: "resources/populations.tsv"
 derive_aa:
-  method: 'vote'
+  method: "vote"
   outgroups:
     - tsk_19 # Chimp
     - tsk_20 # Gorilla
@@ -11,8 +11,8 @@ derive_aa:
     min-alleles: 4
 
 chromosomes:
-  - '1'
-  - '2'
+  - "1"
+  - "2"
 
 description: >-
   Test run on chromosomes 1 and 2, Out of Africa dataset
@@ -21,7 +21,6 @@ analysis: test
 subset:
   include:
     population: ["CEU", "CHB", "YRI"]
-
 # relate/test:
 #   description: >-
 #     Test run on chromosome 1, Out of Africa dataset

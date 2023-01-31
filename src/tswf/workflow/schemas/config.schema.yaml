@@ -43,8 +43,8 @@ properties:
     items:
       type: string
     example:
-      - '1'
-      - '2'
+      - "1"
+      - "2"
   subset:
     description: |
       Apply analyses to subset of input data. This can be useful to
@@ -54,7 +54,7 @@ properties:
     properties:
       include:
         patternProperties:
-          '[a-zA-Z0-9_]+':
+          "[a-zA-Z0-9_]+":
             description: >-
               Keys in sample data frame for selecting subsets of
               samples. All samples are included if left empty.
@@ -62,12 +62,12 @@ properties:
             items:
               type: string
         example:
-          population:           # Skip CEU population in this analysis
+          population: # Skip CEU population in this analysis
             - "CHB"
 
       exclude:
         patternProperties:
-          '[a-zA-Z0-9_]+':
+          "[a-zA-Z0-9_]+":
             description: >-
               Keys in sample data frame for excluding subsets of
               samples.
@@ -76,7 +76,7 @@ properties:
               type: string
         example:
           SM:
-            - "tsk_11"   # Possibly low quality
+            - "tsk_11" # Possibly low quality
   derive_aa:
     type: object
     default: {}
@@ -90,8 +90,8 @@ properties:
     properties:
       method:
         type: string
-        default: 'vote'
-        enum: ['vote'] ## Add methods suggested on tsinfer list here
+        default: "vote"
+        enum: ["vote"] ## Add methods suggested on tsinfer list here
         description: |
           Method to use to decide on ancestral state. Currently only
           supports 'vote'.
@@ -99,7 +99,7 @@ properties:
         type: object
         default: {}
         example:
-          min-alleles: 4   # Minimum number of observed alleles to decide on ancestral state.
+          min-alleles: 4 # Minimum number of observed alleles to decide on ancestral state.
         description: |
           Options provided as key:value pairs that are passed to
           tsinfer-get-ancestral-state.
@@ -117,8 +117,6 @@ properties:
           - tsk_20 # Gorilla
           - tsk_21 # Orangutan
     additionalProperties: false
-
-
 
 # entries that have to be in the config file for successful validation
 required:
