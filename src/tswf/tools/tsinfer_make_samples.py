@@ -115,7 +115,16 @@ def init_vcf(fn, samplenames):
 @click.option("chromlength", "--length", type=int)
 def main(vcf, samplesfile, populationfile, sampledata, chromlength, threads):
     df_meta = pd.read_table(samplesfile).set_index("SM")
+    if df_meta.index.duplicated().any():
+        logger.error("duplicate sample ids in samplesheet; sample names must be unique")
+        exit(1)
     df_pop = pd.read_table(populationfile).set_index("population")
+    if df_pop.index.duplicated().any():
+        logger.error(
+            "duplicate population ids in population datasheet; "
+            "population identifiers must be unique"
+        )
+        exit(1)
     print(f"...read {df_meta.shape[0]} entries\n")
     vcf = init_vcf(vcf, df_meta.index.to_list())
 
