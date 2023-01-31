@@ -16,19 +16,18 @@ properties:
     description: alternative sample name
     example: [chb1, ceu1, "", "", ""]
   latitude:
-    type: ['null', number]
+    type: ["null", number]
     description: sampling latitude
     example: [39, 40, "", "", ""]
   longitude:
-    type: ['null', number]
+    type: ["null", number]
     description: sampling longitude
     example: [116, 14, "", "", ""]
-
 
 patternProperties:
   '[a-zA-Z0-9_\.]+':
     description: additional metadata column
-    type: ['null', string, number]
+    type: ["null", string, number]
 
 required:
   - SM
