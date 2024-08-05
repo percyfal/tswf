@@ -152,7 +152,9 @@ def _fst_heatmap(
 
 
 # GNN prop plot
-def _gnnprop(infile, gnn, plot_width=1800, plot_height=400, visible=True):
+def _gnnprop(
+    infile, gnn, plot_width=1800, plot_height=400, visible=True, metadata=None
+):
     f = bokehutils.figure(
         bokehutils.Matrix(gnn),
         plot_width=plot_width,
@@ -161,8 +163,9 @@ def _gnnprop(infile, gnn, plot_width=1800, plot_height=400, visible=True):
         y_axis_label="GNN proportion",
         name=infile,
         visible=visible,
+        metadata=metadata,
     )
-    groups = [x for x in sorted(gnn.columns) if x not in ["longitude", "latitude"]]
+    groups = [x for x in sorted(gnn.columns)]
     p = f.vbar_stack(factor_levels=[0, 1], groups=groups)
     f._fig.title.text_font_size = "18pt"
     return p, f
@@ -185,6 +188,15 @@ def _fst(key, treefile, population_key, plot_width=700, plot_height=500, visible
         ),
         tsdata.data,
     )
+
+
+def _ts_individuals(ts):
+    """Get tree sequence metadata for individuals"""
+    individuals = []
+    for ind in list(ts.individuals()):
+        md = json.loads(ind.metadata.decode())
+        individuals.append(md)
+    return pd.DataFrame(individuals).set_index("SM")
 
 
 @click.command(help=__doc__)
@@ -214,7 +226,7 @@ def _fst(key, treefile, population_key, plot_width=700, plot_height=500, visible
     help="tree sequence metadata key that defines population name",
 )
 @pass_environment
-def main(env, gnn, ts, gnn_ts, output_file, population_key):
+def main(env, gnn, ts, gnn_ts, output_file, population_key):  # noqa: C901
     docwidth = 1200
 
     assert len(gnn) == len(ts), "must supply same number of GNN csv and TS files"
@@ -223,7 +235,6 @@ def main(env, gnn, ts, gnn_ts, output_file, population_key):
         "--gnn-ts or separately via --gnn and --ts"
     )
 
-    individuals = None
     first = True
     has_lng_lat = False
     if len(gnn) > 0:
@@ -233,6 +244,7 @@ def main(env, gnn, ts, gnn_ts, output_file, population_key):
 
     gnn = defaultdict(dict)
     treefiles = defaultdict(dict)
+    individuals = pd.DataFrame()
     for csvfile, treefile in pairs:
         # Chromosome is the directory of the file name
         k = os.path.basename(os.path.dirname(treefile))
@@ -248,16 +260,12 @@ def main(env, gnn, ts, gnn_ts, output_file, population_key):
         ).droplevel(["sample_node_id", "sample_node_population_id"])
         gnn[k] = df
         treefiles[k] = treefile
-        # Parse first tree file for metadata
         if first:
-            ts = tskit.load(treefile)
-            individuals = list(ts.individuals())
-            if any(
-                ("longitude" in json.loads(ind.metadata.decode()).keys())
-                or ("latitude" in json.loads(ind.metadata.decode()).keys())
-                for ind in individuals
-            ):
-                has_lng_lat = True
+            individuals = _ts_individuals(tskit.load(treefile))
+            first = False
+
+    if "longitude" in individuals.columns and "latitude" in individuals.columns:
+        has_lng_lat = True
 
     gnn_all = (
         pd.concat(gnn.values(), keys=[f"gnn-{i + 1}" for i in range(len(gnn.keys()))])
@@ -268,18 +276,8 @@ def main(env, gnn, ts, gnn_ts, output_file, population_key):
     gnn_all = gnn_all.sort_values(by=gnn_all.columns.to_list(), ascending=False)
 
     doc, dmap = make_doc(docwidth)
-    # Add longitude, latitude to gnn_all
     if has_lng_lat:
         doc.add_root(dmap)
-        gnn_all["longitude"] = None
-        gnn_all["latitude"] = None
-        for ind in individuals:
-            md = json.loads(ind.metadata.decode())
-            sample = md["SM"]
-            lng = md["longitude"]
-            lat = md["latitude"]
-            gnn_all.longitude.loc[:, :, sample] = lng
-            gnn_all.latitude.loc[:, :, sample] = lat
 
     hm = {}
     gnnprop = {}
@@ -303,7 +301,9 @@ def main(env, gnn, ts, gnn_ts, output_file, population_key):
     )
 
     fig_hm_all = _heatmap("All chromosomes", gnn_all, visible=True)
-    fig_gnnprop_all, gnnprop_all = _gnnprop("All chromosomes", gnn_all, visible=True)
+    fig_gnnprop_all, gnnprop_all = _gnnprop(
+        "All chromosomes", gnn_all, visible=True, metadata=individuals
+    )
     fig_fst_all = _fst_heatmap("All chromosomes", fst_all, population_key, visible=True)
     fig_worldmap = gnnprop_all.world_map()
 
@@ -329,7 +329,7 @@ def main(env, gnn, ts, gnn_ts, output_file, population_key):
     doc.add_root(
         Div(
             text=(
-                f"""<br></br><hr style="width:{docwidth}px;">"""
+                f"""<br></br><hr style="width:{docwidth}px;">"""  # noqa: E231,E702
                 """</hr><br></br><h3>Single chromosomes</h3>"""
             )
         )

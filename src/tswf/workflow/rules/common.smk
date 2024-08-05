@@ -4,7 +4,11 @@ import pandas as pd
 from pathlib import Path
 
 from snakemake.utils import validate
-from snakemake.io import load_configfile
+
+try:
+    from snakemake.common.configfile import load_configfile
+except ImportError:
+    from snakemake.io import load_configfile
 from tswf.config import get_schema
 from tswf.snakemake.config import add_gitinfo
 from tswf.snakemake.config import PopulationData
@@ -101,11 +105,7 @@ def all_tsinfer(wildcards):
     """Collect all tsinfer targets"""
     out = []
     out.append(
-        __RESULTS__
-        / "tsinfer"
-        / f"{cfg.analysis}"
-        / f"{cfg.dataset}"
-        / "population.eda.html"
+        __RESULTS__ / "tsinfer" / f"{cfg.analysis}" / f"{cfg.dataset}" / "population.eda.html"
     )
     return out
 

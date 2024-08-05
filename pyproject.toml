@@ -41,15 +41,15 @@ where = ["src"]
 
 [tool.setuptools]
 package-data = { tswf = [
-	     "workflow/Snakefile",
-	     "workflow/envs/*",
-	     "workflow/rules/*",
-	     "workflow/schemas/*",
-	     "templates/*.j2",
-	     "config/*",
-	     "resources/*",
-	     "test_wf/*",
-	     "*.json"
+            "workflow/Snakefile",
+            "workflow/envs/*",
+            "workflow/rules/*",
+            "workflow/schemas/*",
+            "templates/*.j2",
+            "config/*",
+            "resources/*",
+            "test_wf/*",
+            "*.json"
 ]}
 
 
@@ -89,6 +89,7 @@ deps =
     pytest
     pytest-cov
     pip>=7.0.0
+    snakemake
     wheel
 commands =
     pytest --basetemp="{envtmpdir}" {posargs}
