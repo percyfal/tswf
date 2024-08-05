@@ -4,6 +4,7 @@ Make tsinfer sample data output file SAMPLEDATA from VCF file using
 metadata in SAMPLESFILE and POPULATIONFILE files.
 
 """
+
 import logging
 
 import click
@@ -81,8 +82,8 @@ def add_populations(vcf, samples, df_meta, df_pop):
     sample_pops = list(df_filt.population)
     pop_lookup = {}
     for pop in sorted(set(sample_pops)):
-        md = df_pop.loc[pop]
-        md = {k: v for k, v in md.iteritems()}
+        md = df_pop.loc[pop].to_dict()
+        md = {k: v for k, v in md.items()}
         md["population"] = pop
         pop_lookup[pop] = samples.add_population(metadata=md)
     return [pop_lookup[pop] for pop in sample_pops]
@@ -114,11 +115,11 @@ def init_vcf(fn, samplenames):
 @click.option("--threads", type=int, default=1)
 @click.option("chromlength", "--length", type=int)
 def main(vcf, samplesfile, populationfile, sampledata, chromlength, threads):
-    df_meta = pd.read_table(samplesfile).set_index("SM")
+    df_meta = pd.read_table(samplesfile, comment="#").set_index("SM")
     if df_meta.index.duplicated().any():
         logger.error("duplicate sample ids in samplesheet; sample names must be unique")
         exit(1)
-    df_pop = pd.read_table(populationfile).set_index("population")
+    df_pop = pd.read_table(populationfile, comment="#").set_index("population")
     if df_pop.index.duplicated().any():
         logger.error(
             "duplicate population ids in population datasheet; "
