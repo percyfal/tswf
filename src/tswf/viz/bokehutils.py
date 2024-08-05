@@ -30,15 +30,26 @@ def _get_palette(cmap=Set3[12], n=12, start=0, end=1):
 
 
 class Figure:
-    def __init__(self, data, *args, **kw):
+    def __init__(self, data, metadata=None, *args, **kw):
         self._data = data
         self._fig = None
         self._kw = kw
         self._source = None
+        self._metadata = metadata
 
     @property
     def source(self):
+        if self.metadata is not None:
+            source = self._source.to_df()
+            source = pd.merge(
+                source, self.metadata, left_on="sample_name", right_index=True
+            )
+            return ColumnDataSource(source)
         return self._source
+
+    @property
+    def metadata(self):
+        return self._metadata
 
 
 class MatrixFigure(Figure):
@@ -96,7 +107,7 @@ class MatrixFigure(Figure):
             x = list(map(lambda z: -z, x))
             self._fig.line(x=x, y=y, line_color="black")
 
-    def heatmap(
+    def heatmap(  # noqa: C901
         self,
         low=None,
         high=None,
@@ -356,6 +367,7 @@ class MatrixFigure(Figure):
             color="white",
             name="choropleth",
         )
+
         self._fig.circle(
             x="longitude",
             y="latitude",
