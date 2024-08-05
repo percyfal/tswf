@@ -4,6 +4,7 @@ Calculate haplotype gnn proportions for a SAMPLE in a tree sequence
 (TS) file.
 
 """
+
 import collections
 import json
 import os
@@ -12,17 +13,19 @@ import click
 import numpy as np
 import pandas as pd
 import tskit
+from tqdm import tqdm
+
 from tswf.cli import pass_environment
 
 
-# Copy from https://github.com/tskit-dev/tskit/pull/683/files#diff-e5e589330499b325320b2e3c205eaf350660b50691d3e1655f8789683e49dca6R399 # noqa: E501
+# Copy from https://github.com/tskit-dev/tskit/pull/683/files#diff-e5e589330499b325320b2e3c205eaf350660b50691d3e1655f8789683e49dca6R399 # noqa: E501,B950
 def parse_time_windows(ts, time_windows):
     if time_windows is None:
         time_windows = [0.0, ts.max_root_time]
     return np.array(time_windows)
 
 
-def windowed_genealogical_nearest_neighbours(
+def windowed_genealogical_nearest_neighbours(  # noqa: C901
     ts,
     focal,
     reference_sets,
@@ -57,7 +60,7 @@ def windowed_genealogical_nearest_neighbours(
 
     window_index = 0
     # Loop the tree sequence
-    for (t_left, t_right), edges_out, edges_in in ts.edge_diffs():
+    for (t_left, t_right), edges_out, edges_in in tqdm(ts.edge_diffs()):
         for edge in edges_out:
             parent[edge.child] = tskit.NULL
             v = edge.parent
@@ -178,7 +181,7 @@ def windowed_genealogical_nearest_neighbours(
 @click.option("--plot-file", type=click.Path(), help="plot file name")
 @click.option("--title", type=str, help="plot title", default="title")
 @pass_environment
-def main(
+def main(  # noqa: C901
     env,
     ts,
     sample,
@@ -229,7 +232,7 @@ def main(
         n = int((ts.sequence_length - start_pos) / window_size) + 1
         windows = np.linspace(start=0.0, stop=ts.sequence_length, num=n)
 
-    for ind in ts.individuals():
+    for ind in tqdm(ts.individuals()):
         md = json.loads(ind.metadata.decode())
         if md[sample_id] == sample:
             # Focal node is haplotype node, *not* a particular variant
@@ -268,9 +271,13 @@ def main(
     # FIXME: move to visualization script
     # Plot haplotype blocks
     if plot_file is not None:
+        from bokeh.models import ColumnDataSource
+        from bokeh.models import PrintfTickFormatter
+        from bokeh.plotting import figure
+        from bokeh.plotting import output_file
+        from bokeh.plotting import show
+
         import tswf.viz.bokehutils as bokehutils
-        from bokeh.plotting import show, figure, output_file
-        from bokeh.models import ColumnDataSource, PrintfTickFormatter
 
         source = ColumnDataSource(df.reset_index())
         p = figure(
