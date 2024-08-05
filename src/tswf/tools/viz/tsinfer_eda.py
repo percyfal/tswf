@@ -214,7 +214,7 @@ def _fst(key, treefile, population_key, plot_width=700, plot_height=500, visible
     help="tree sequence metadata key that defines population name",
 )
 @pass_environment
-def main(env, gnn, ts, gnn_ts, output_file, population_key):
+def main(env, gnn, ts, gnn_ts, output_file, population_key):  # noqa: C901
     docwidth = 1200
 
     assert len(gnn) == len(ts), "must supply same number of GNN csv and TS files"
@@ -278,8 +278,9 @@ def main(env, gnn, ts, gnn_ts, output_file, population_key):
             sample = md["SM"]
             lng = md["longitude"]
             lat = md["latitude"]
-            gnn_all.longitude.loc[:, :, sample] = lng
-            gnn_all.latitude.loc[:, :, sample] = lat
+            idx = pd.IndexSlice
+            gnn_all.loc[idx[:, :, sample], "longitude"] = lng
+            gnn_all.loc[idx[:, :, sample], "latitude"] = lat
 
     hm = {}
     gnnprop = {}
@@ -329,7 +330,7 @@ def main(env, gnn, ts, gnn_ts, output_file, population_key):
     doc.add_root(
         Div(
             text=(
-                f"""<br></br><hr style="width:{docwidth}px;">"""
+                f"""<br></br><hr style="width:{docwidth}px;">"""  # noqa: E231,E702
                 """</hr><br></br><h3>Single chromosomes</h3>"""
             )
         )
