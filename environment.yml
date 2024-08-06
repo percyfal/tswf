@@ -4,13 +4,14 @@ channels:
   - default
 dependencies:
   - bcftools
+  - bio2zarr
   - bokeh=2.4.3
   - cyvcf2
   - matplotlib
   - pandas
   - pyfaidx
   - pygments
-  - python>=3.7,<3.12
+  - python>=3.7
   - scipy>=1.9.3
   - snakemake-minimal>=7.0
   - tqdm

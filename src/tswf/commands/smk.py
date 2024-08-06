@@ -2,9 +2,12 @@
 
 Main entry point to run snakemake workflows.
 """
+
 import logging
+from pathlib import Path
 
 import click
+
 import tswf.snakemake.config as config
 import tswf.wrappers as wrappers
 from tswf.cli import pass_environment
@@ -44,7 +47,14 @@ def run(env, profile, jobs, test, testdir, snakemake_args):
         options.extend(["--profile", profile])
     if test:
         testdir = copytree_testdir(testdir)
-        options.extend(["--directory", testdir])
+        options.extend(
+            [
+                "--directory",
+                testdir,
+                "--configfile",
+                str(Path(testdir) / "config/config.derive_aa.yaml"),
+            ]
+        )
     options = " ".join(options)
     target = ""
     wrappers.snakemake(options=options, snakefile=snakefile, targets=target)

@@ -1,4 +1,5 @@
 """Command wrappers"""
+
 import logging
 import shutil
 import subprocess
@@ -31,7 +32,7 @@ def snakemake(targets=None, options=None, snakefile=None):
         return
 
     try:
-        logger.debug(f"running {cmd}")
+        logger.info(f"running {cmd}")
         subprocess.run(cmd, check=True, shell=True)
     except subprocess.CalledProcessError as e:
         logger.error(f"{cmd} failed")

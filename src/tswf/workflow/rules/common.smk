@@ -15,6 +15,7 @@ from tswf.snakemake.config import PopulationData
 from tswf.snakemake.config import SampleData
 from tswf.snakemake.config import Config
 from tswf.snakemake.config import wildcards_or
+from tswf.snakemake.lmod import get_envmodules
 
 
 container: "docker://continuumio/miniconda3"

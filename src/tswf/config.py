@@ -97,7 +97,9 @@ class Schema:
             raise
         return row
 
-    def dump_properties(self, comments=True, comment_column=40, example=False) -> dict:
+    def dump_properties(  # noqa: C901
+        self, comments=True, comment_column=40, example=False
+    ) -> dict:
         """Dump schema properties as dict.
 
         :param bool comments: include comments in output
@@ -204,7 +206,7 @@ class PropertyDict(OrderedDict):
 
     def __setitem__(self, key, value):
         OrderedDict.__setitem__(self, key, value)
-        if key not in dir(dict()):
+        if key not in dir({}):
             try:
                 setattr(self, key, value)
             except Exception as e:
@@ -219,7 +221,7 @@ class PropertyDict(OrderedDict):
 class Config(PropertyDict):
     def __init__(self, data=None, file=None):
         if data is None:
-            data = dict()
+            data = {}
         if file is not None:
             fdata = self.read_from_file(file)
             data.update(**fdata)
@@ -236,7 +238,7 @@ class Config(PropertyDict):
         except FileNotFoundError as e:
             logger.error(e)
             logger.info("setting data to empty dict")
-            data = dict()
+            data = {}
         return data
 
     @classmethod
