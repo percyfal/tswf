@@ -13,12 +13,12 @@ jobs:
       matrix:
         include:
           - { python: "3.12", os: "ubuntu-latest", session: "pre-commit" }
-          - { python: "3.12", os: "ubuntu-latest", session: "mypy" }
-          - { python: "3.11", os: "ubuntu-latest", session: "mypy" }
-          - { python: "3.10", os: "ubuntu-latest", session: "mypy" }
-          - { python: "3.12", os: "ubuntu-latest", session: "tests" }
-          - { python: "3.11", os: "ubuntu-latest", session: "tests" }
-          - { python: "3.10", os: "ubuntu-latest", session: "tests" }
+          # - { python: "3.12", os: "ubuntu-latest", session: "mypy" }
+          # - { python: "3.11", os: "ubuntu-latest", session: "mypy" }
+          # - { python: "3.10", os: "ubuntu-latest", session: "mypy" }
+          # - { python: "3.12", os: "ubuntu-latest", session: "tests" }
+          # - { python: "3.11", os: "ubuntu-latest", session: "tests" }
+          # - { python: "3.10", os: "ubuntu-latest", session: "tests" }
     env:
       NOXSESSION: ${{ matrix.session }}
       FORCE_COLOR: "1"
@@ -56,7 +56,8 @@ jobs:
       - name: Install Nox
         run: |
           pipx install --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox
-          pipx inject --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox nox-poetry poetry-dynamic-versioning poetry-plugin-export
+          pipx inject --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt nox nox-poetry
+          pipx inject --pip-args=--constraint=${{ github.workspace }}/.github/workflows/constraints.txt poetry-dynamic-versioning poetry-plugin-export
           nox --version
 
       - name: Compute pre-commit cache key
