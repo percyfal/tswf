@@ -2,16 +2,19 @@
 
 Run tree sequence workflows.
 """
+
 import logging
 import os
 import pathlib
 
 import click
+
 from tswf import decorators
 from tswf.config import load_config
 from tswf.env import Environment
 
 from . import __version__
+
 
 __author__ = "Per Unneberg"
 
@@ -24,7 +27,9 @@ pass_environment = click.make_pass_decorator(Environment, ensure=True)
 
 class tswf_CLI(click.MultiCommand):
     module = "tswf.commands"
-    cmd_folder = os.path.abspath(os.path.join(os.path.dirname(__file__), "commands"))
+    cmd_folder = pathlib.Path(
+        os.path.abspath(os.path.join(os.path.dirname(__file__), "commands"))
+    )
 
     def list_commands(self, ctx):
         rv = []

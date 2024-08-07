@@ -1,15 +1,18 @@
 """Configuration administration utilities.
 
 """
+
 import logging
 import sys
+from importlib import resources as importlib_resources
 
 import click
-import pkg_resources
+
 from tswf.cli import pass_environment
 from tswf.config import Config
-from tswf.config import get_schema
 from tswf.config import SchemaFiles
+from tswf.config import get_schema
+
 
 logger = logging.getLogger(__name__)
 
@@ -79,8 +82,8 @@ def example(env, configuration, as_yaml):
     kwargs = {}
     tsv = False
     schema = get_schema(conf_map[configuration])
-    schemafile = pkg_resources.resource_filename(
-        "tswf", str(getattr(SchemaFiles, conf_map[configuration]))
+    schemafile = importlib_resources.files('tswf') / str(
+        getattr(SchemaFiles, conf_map[configuration])
     )
 
     required = schema._schema.get("required", None)

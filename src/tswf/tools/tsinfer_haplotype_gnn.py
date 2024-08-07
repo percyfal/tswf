@@ -282,8 +282,8 @@ def main(  # noqa: C901
         source = ColumnDataSource(df.reset_index())
         p = figure(
             title=title,
-            plot_width=1800,
-            plot_height=400,
+            width=1800,
+            height=400,
             min_border=0,
             y_range=(0, 1),
             x_range=(0, ts.sequence_length),

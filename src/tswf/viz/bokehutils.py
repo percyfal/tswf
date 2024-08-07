@@ -1,3 +1,5 @@
+"""Bokeh utilities for plotting data"""
+
 import collections
 import itertools
 import json
@@ -8,7 +10,7 @@ import scipy
 from bokeh import plotting
 from bokeh.models import BasicTicker
 from bokeh.models import BoxSelectTool
-from bokeh.models import ColorBar
+from bokeh.models import ColorBar  # type: ignore
 from bokeh.models import ColumnDataSource
 from bokeh.models import GeoJSONDataSource
 from bokeh.models import HoverTool
@@ -326,7 +328,7 @@ class MatrixFigure(Figure):
         return self._fig
 
     def world_map(self):
-        self._kw["plot_height"] = 600
+        self._kw["height"] = 600
         self._kw["title"] = "World map"
         self._kw.pop("y_axis_label", None)
         self._kw.pop("x_range", None)
@@ -336,13 +338,13 @@ class MatrixFigure(Figure):
 
         geosource = GeoJSONDataSource(geojson=json.dumps(natural_earth()))
         hover = HoverTool(
-            names=["samples"],
+            name="samples",
             tooltips=[
                 ("sample_node_population", "@sample_node_population"),
                 ("sample_name", "@sample_name"),
             ],
         )
-        hover_map = HoverTool(names=["choropleth"], tooltips=[("country", "@country")])
+        hover_map = HoverTool(name="choropleth", tooltips=[("country", "@country")])
 
         # FIXME: get rid of explicit key
         groups = sorted(list(set(self.source.data["sample_node_population"])))
@@ -368,7 +370,7 @@ class MatrixFigure(Figure):
             name="choropleth",
         )
 
-        self._fig.circle(
+        self._fig.scatter(
             x="longitude",
             y="latitude",
             size=10,

@@ -4,9 +4,11 @@ Visualization tools. The subcommands can be called as standalone
 scripts with prefix tswf-.
 
 """
+
 import logging
 
 import click
+
 from tswf.cli import tswf_CLI
 from tswf.config import PKG_DIR
 

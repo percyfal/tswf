@@ -10,6 +10,7 @@ they are passed to the options, so make sure they follow the order
 they were generated.
 
 """
+
 import json
 import os
 from collections import defaultdict
@@ -17,13 +18,14 @@ from collections import defaultdict
 import click
 import pandas as pd
 import tskit
-import tswf.viz.bokehutils as bokehutils
 from bokeh.document import Document
 from bokeh.embed import file_html
 from bokeh.io import export_png
 from bokeh.layouts import row
-from bokeh.models import Div
+from bokeh.models import Div  # type: ignore
 from bokeh.resources import CDN
+
+import tswf.viz.bokehutils as bokehutils
 from tswf.cli import pass_environment
 
 
@@ -110,16 +112,16 @@ def _heatmap(
     population_key="sample_node_population",
     title="GNN clustering: {infile}",
     cbar_title="GNN proportion (Z-score)",
-    plot_height=500,
-    plot_width=700,
+    height=500,
+    width=700,
     visible=True,
 ):
     dfg = bokehutils.Matrix(gnn.groupby(population_key).mean())
     dfg.rescale()
     f = bokehutils.figure(
         dfg,
-        plot_height=plot_height,
-        plot_width=plot_width,
+        height=height,
+        width=width,
         y_axis_location="right",
         toolbar_location="right",
         title=title.format(infile=infile),
@@ -131,13 +133,11 @@ def _heatmap(
     return hm
 
 
-def _fst_heatmap(
-    key, data, population_key, plot_width=700, plot_height=500, visible=True
-):
+def _fst_heatmap(key, data, population_key, width=700, height=500, visible=True):
     f = bokehutils.figure(
         data,
-        plot_width=plot_width,
-        plot_height=plot_height,
+        width=width,
+        height=height,
         title=f"Mean chromosome fst: {key}",
         visible=visible,
         name=key,
@@ -152,13 +152,11 @@ def _fst_heatmap(
 
 
 # GNN prop plot
-def _gnnprop(
-    infile, gnn, plot_width=1800, plot_height=400, visible=True, metadata=None
-):
+def _gnnprop(infile, gnn, width=1800, height=400, visible=True, metadata=None):
     f = bokehutils.figure(
         bokehutils.Matrix(gnn),
-        plot_width=plot_width,
-        plot_height=plot_height,
+        width=width,
+        height=height,
         title=f"GNN proportion: {infile}",
         y_axis_label="GNN proportion",
         name=infile,
@@ -172,7 +170,7 @@ def _gnnprop(
 
 
 # Need to parallelize if ts inference
-def _fst(key, treefile, population_key, plot_width=700, plot_height=500, visible=True):
+def _fst(key, treefile, population_key, width=700, height=500, visible=True):
     print("loading treefile for key ", key)
     ts = tskit.load(treefile)
     tsdata = bokehutils.TSData(ts)
@@ -182,8 +180,8 @@ def _fst(key, treefile, population_key, plot_width=700, plot_height=500, visible
             key,
             tsdata.data,
             population_key,
-            plot_width=plot_width,
-            plot_height=plot_height,
+            width=width,
+            height=height,
             visible=visible,
         ),
         tsdata.data,

@@ -5,11 +5,13 @@ file. Calculations can be based on either 'population' (default) or
 'individual' mode, which defines at what level samples are grouped.
 
 """
+
 import json
 
 import click
 import pandas as pd
 import tskit
+
 from tswf.cli import pass_environment
 
 

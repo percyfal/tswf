@@ -18,6 +18,7 @@ from tswf.snakemake.utils import profile_opt
 from tswf.snakemake.utils import test_opt
 from tswf.snakemake.utils import testdir_opt
 
+
 __shortname__ = __name__.split(".")[-1]
 
 

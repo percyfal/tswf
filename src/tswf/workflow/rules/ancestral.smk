@@ -1,4 +1,5 @@
 rule derive_ancestral_by_vote:
+    """Derive ancestral allele by majority vote."""
     output:
         vcf=__INTERIM__ / "variants/{dataset}/ancestral/{chrom}/{prefix}{bcf}",
     input:

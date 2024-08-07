@@ -7,14 +7,15 @@ import logging
 import pprint
 import types
 from collections import OrderedDict
+from importlib import resources as importlib_resources
 from pathlib import Path
 from typing import Any
 from typing import Mapping
 
 import jsonschema
-import pkg_resources
 import ruamel.yaml
 from ruamel.yaml import YAML
+
 
 logger = logging.getLogger(__name__)
 
@@ -59,9 +60,11 @@ class Schema:
 
     def __init__(self, schema: Mapping[str, Any] | None) -> None:
         self._schema = schema
+        self.empty_value: None | bytes | Mapping[str, Any]
         if schema is None:
             self._string = ""
             self._validate_row = validate_bytes
+            self.empty_value = b""
         else:
             try:
                 DefaultSchemaValidator(schema)
@@ -82,13 +85,13 @@ class Schema:
         return pprint.pformat(self._schema)
 
     @property
-    def schema(self):
+    def schema(self) -> Mapping[str, Any] | None:
         return copy.deepcopy(self._schema)
 
     def asdict(self) -> Mapping[str, Any] | None:
         return self.schema
 
-    def validate(self, row: Any) -> dict:
+    def validate(self, row: None | bytes) -> object:
         """Validate a configuration row (dict) against this schema."""
         try:
             self._validate_row(row)
@@ -98,8 +101,11 @@ class Schema:
         return row
 
     def dump_properties(  # noqa: C901
-        self, comments=True, comment_column=40, example=False
-    ) -> dict:
+        self,
+        comments: bool = True,
+        comment_column: int = 40,  # pylint: disable=unused-argument
+        example: bool = False,
+    ) -> object | None:
         """Dump schema properties as dict.
 
         :param bool comments: include comments in output
@@ -114,7 +120,8 @@ class Schema:
         else:
             raise NotImplementedError
 
-        header = self.asdict().get("description", "")
+        header = self.asdict().get("description", "")  # type: ignore
+
         try:
             properties.yaml_set_start_comment(header)
         except IndexError:
@@ -156,17 +163,16 @@ class Schema:
             return props
 
         properties = update_properties(
-            properties, self.asdict().get("properties", {}), level=0
+            properties, self.asdict().get("properties", {}), level=0  # type: ignore
         )
         return properties
 
 
 def get_schema(schema="CONFIGURATION_SCHEMA"):
-    schemafile = pkg_resources.resource_filename(
-        "tswf", str(getattr(SchemaFiles, schema))
-    )
-    with open(schemafile) as fh:
-        schema = YAML().load(fh)
+    ref = importlib_resources.files('tswf') / str(getattr(SchemaFiles, schema))
+    with importlib_resources.as_file(ref) as schemafile:
+        with open(schemafile) as fh:
+            schema = YAML().load(fh)
     return Schema(schema)
 
 

@@ -35,8 +35,9 @@ schema.validate(envmodules)
 # load config and sample sheets
 schema = get_schema("WORKFLOW_CONFIGURATION_SCHEMA")
 
+if os.path.exists("config/config.yaml"):
 
-configfile: Path("config/config.yaml")
+    configfile: Path("config/config.yaml")
 
 
 schema.validate(config)
