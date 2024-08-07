@@ -195,8 +195,8 @@ def precommit(session: Session) -> None:
 @session(python=python_versions)
 def tests(session: Session) -> None:
     """Run the test suite."""
-    install_poetry_plugins_ci(session)
     session.install(".")
+    install_poetry_plugins_ci(session)
     install_snakemake(session)
     session.install("coverage[toml]", "pytest", "pygments")
     session.run("ls", "src/tswf", external=True)
