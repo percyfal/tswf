@@ -191,6 +191,7 @@ def tests(session: Session) -> None:
     session.install(".")
     install_snakemake(session)
     session.install("coverage[toml]", "pytest", "pygments")
+    session.run("ls", "src/tswf", external=True)
     try:
         session.run("coverage", "run", "--parallel", "-m", "pytest", *session.posargs)
     finally:
