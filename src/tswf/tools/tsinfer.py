@@ -1,6 +1,7 @@
 """Run tsinfer workflow
 
 """
+
 import logging
 import re
 
@@ -9,6 +10,7 @@ import cyvcf2
 import pandas as pd
 import tsinfer
 from tqdm import tqdm
+
 
 FORMAT = "%(levelname)s:tsinfer:%(asctime)-15s %(message)s"
 logging.basicConfig(format=FORMAT)

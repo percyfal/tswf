@@ -4,7 +4,9 @@ Make ancestral reference sequence OUTFILE given REFERENCE sequence and
 a VCF file with the AA INFO tag denoting the ancestral allele.
 
 """
+
 import logging
+import pathlib
 import sys
 
 import click
@@ -18,11 +20,17 @@ from tqdm import tqdm
 @click.argument("vcf", type=click.Path(exists=True))
 @click.argument("outfile", type=click.Path())
 @click.option("--chromosome", type=str, help="chromosome")
-def main(reference, vcf, outfile, chromosome):
-    vcf = cyvcf2.VCF(vcf)
+def main(
+    reference: pathlib.Path,
+    vcf: pathlib.Path,
+    outfile: pathlib.Path,
+    chromosome: None | str = None,
+) -> None:
+    """Generate ancestral sequence from VCF."""
+    cyvcf = cyvcf2.VCF(vcf)
 
     if chromosome is None:
-        chromosome = vcf.seqnames[0]
+        chromosome = cyvcf.seqnames[0]
 
     ref = Fasta(reference)
     try:
@@ -34,7 +42,7 @@ def main(reference, vcf, outfile, chromosome):
     n_sites = 0
     n_change = 0
     # Loop vcf and update reference at positions
-    for _, variant in tqdm(enumerate(vcf)):
+    for _, variant in tqdm(enumerate(cyvcf)):
         if "AA" not in dict(variant.INFO).keys():
             logging.error(
                 "No AA tag in INFO field; please add AA "
@@ -50,3 +58,4 @@ def main(reference, vcf, outfile, chromosome):
                 "to {variant.INFO['AA']}"
             )
             seq[variant.POS - 1] = variant.INFO["AA"]
+    seq.write(outfile)

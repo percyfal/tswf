@@ -9,7 +9,7 @@ rule bcftools_index:
     conda:
         "../envs/bcftools.yaml"
     envmodules:
-        *envmodules.get("bcftools_index", []),
+        *get_envmodules(config, "bcftools_index"),
     log:
         "logs/{prefix}{bcf}.{ext}.log",
     shell:
@@ -33,7 +33,7 @@ rule tsinfer_make_samples:
         length=get_chrom_length,
     threads: 1
     shell:
-        "tswf-tsinfer-make-samples {input.vcf} {input.samples} {input.populations} {output.samples} --length {params.length}"
+        "tswf-tsinfer-make-samples {input.vcf} {input.samples} {input.populations} {output.samples} --length {params.length} > {log} 2>&1"
 
 
 rule tsinfer_infer:
@@ -51,7 +51,7 @@ rule tsinfer_infer:
     log:
         "logs/{interim}/tsinfer/{analysis}/{dataset}/infer/{chrom}/{prefix}.log",
     shell:
-        "tsinfer infer {input.samples} -O {output.trees} --progress --num-threads {threads}"
+        "tsinfer infer {input.samples} -O {output.trees} --progress --num-threads {threads} > {log} 2>&1"
 
 
 rule tsinfer_gnn:
@@ -66,7 +66,7 @@ rule tsinfer_gnn:
     log:
         "logs/{results}/tsinfer/{analysis}/{dataset}/{chrom}/{mode}/{prefix}.gnn.log",
     shell:
-        "tswf-tsinfer-gnn {input.trees} --output-file {output.gnn} --mode {wildcards.mode}"
+        "tswf-tsinfer-gnn {input.trees} --output-file {output.gnn} --mode {wildcards.mode} > {log} 2>&1"
 
 
 rule tsinfer_eda:
@@ -82,7 +82,7 @@ rule tsinfer_eda:
         "logs/{results}/tsinfer/{analysis}/{dataset}/{mode}.eda.log",
     threads: 1
     shell:
-        "tswf-tsinfer-eda {params.gnn} {params.trees} --output-file {output.html}"
+        "tswf-tsinfer-eda {params.gnn} {params.trees} --output-file {output.html} > {log} 2>&1"
 
 
 ## FIXME: need to run as script so as to simplify tree sequence to get

@@ -13,6 +13,7 @@ import pandas as pd
 import tsinfer
 from tqdm import tqdm
 
+
 FORMAT = "%(levelname)s:tsinfer:%(asctime)-15s %(message)s"
 logging.basicConfig(format=FORMAT)
 logger = logging.getLogger("tsinfer")

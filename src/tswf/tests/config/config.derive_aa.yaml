@@ -1,0 +1,8 @@
+derive_aa:
+  method: "vote"
+  outgroups:
+    - tsk_19 # Chimp
+    - tsk_20 # Gorilla
+    - tsk_21 # Orangutan
+  options:
+    min-alleles: 4

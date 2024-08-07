@@ -6,6 +6,13 @@ description: |
 type: object
 
 properties:
+  bio2zarr:
+    description: |
+      Use bio2zarr to convert vcf to zarr output. Requires tsinfer =>
+      0.4.0a1
+    type: boolean
+    default: false
+    example: true
   dataset:
     description: Variant dataset directory in data/raw/variants
     type: string

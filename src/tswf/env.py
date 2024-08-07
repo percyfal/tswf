@@ -3,7 +3,9 @@ import pathlib
 import sys
 
 import click
+
 from tswf.config import Config
+
 
 try:
     from dotenv import dotenv_values

@@ -1,7 +1,15 @@
 # Tree sequence workflow - tswf
 
 [![Snakemake](https://img.shields.io/badge/snakemake-≥7.0-brightgreen.svg)](https://snakemake.bitbucket.io)
-[![Tests](https://github.com/percyfal/wg-genealogy-smk/actions/workflows/main.yaml/badge.svg)](https://github.com/percyfal/tswf/actions/workflows/main.yaml)
+[![Tests](https://github.com/percyfal/tswf/actions/workflows/main.yaml/badge.svg)][tests]
+[![Codecov](https://codecov.io/gh/percyfal/tswf/branch/main/graph/badge.svg)][codecov]
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)][pre-commit]
+[![Black](https://img.shields.io/badge/code%20style-black-000000.svg)][black]
+
+[tests]: https://github.com/percyfal/tswf/actions?workflow=Tests
+[codecov]: https://app.codecov.io/gh/percyfal/tswf
+[pre-commit]: https://github.com/pre-commit/pre-commit
+[black]: https://github.com/psf/black
 
 ## About
 

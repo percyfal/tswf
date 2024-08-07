@@ -15,6 +15,7 @@ from tswf.snakemake.config import PopulationData
 from tswf.snakemake.config import SampleData
 from tswf.snakemake.config import Config
 from tswf.snakemake.config import wildcards_or
+from tswf.snakemake.lmod import get_envmodules
 
 
 container: "docker://continuumio/miniconda3"
@@ -34,8 +35,9 @@ schema.validate(envmodules)
 # load config and sample sheets
 schema = get_schema("WORKFLOW_CONFIGURATION_SCHEMA")
 
+if os.path.exists("config/config.yaml"):
 
-configfile: Path("config/config.yaml")
+    configfile: Path("config/config.yaml")
 
 
 schema.validate(config)

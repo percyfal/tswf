@@ -3,40 +3,48 @@ import os
 
 import numpy as np
 import pandas as pd
-from snakemake.utils import logger
+
+
+try:
+    from snakemake.logging import logger
+except ImportError:
+    from snakemake.utils import logger
+
 from tswf._version import version
-from tswf.config import get_schema
 from tswf.config import PKG_DIR
 from tswf.config import PropertyDict
+from tswf.config import get_schema
 
 
 SNAKEMAKE_ROOT = PKG_DIR / "workflow"
 
 
-def wildcards_or(items, empty=False):
+def wildcards_or(items: list[str], empty: bool = False):
+    """Convert list of items to wildcards string separated by '|'."""
     items = list(set(items))
     if empty:
         items = [""] + items
     return f'({"|".join(items)})'
 
 
-# context manager for cd
 @contextlib.contextmanager
 def cd(path, logger):
-    CWD = os.getcwd()
-    logger.info(f"Changing directory from {CWD} to {path}")
+    """Change directory and return to original on exit (context manager for cd)."""
+    cwd = os.getcwd()
+    logger.info("Changing directory from %s to %s", cwd, path)
 
     os.chdir(path)
     try:
         yield
     except Exception as e:
-        logger.warning(f"Exception caught: {e}")
+        logger.warning("Exception caught: %s", e)
     finally:
-        logger.info(f"Changing directory back to {CWD}")
-        os.chdir(CWD)
+        logger.info("Changing directory back to %s", cwd)
+        os.chdir(cwd)
 
 
 def add_gitinfo(config, workflow):
+    """Add gitinfo to config dict."""
     config["__workflow_basedir__"] = workflow.basedir
     config["__workflow_workdir__"] = os.getcwd()
     config["__version__"] = version
@@ -44,7 +52,9 @@ def add_gitinfo(config, workflow):
 
 
 class Data:
-    _index = None
+    """Generic data structure with schema and index."""
+
+    _index: None | list[str] = None
     _schema = None
 
     def __init__(self, *args):
@@ -126,6 +136,8 @@ class Data:
 
 
 class SampleData(Data):
+    """Data structure to hold samples."""
+
     _index = ["SM"]
     _schema = get_schema("SAMPLES_SCHEMA")
 

@@ -60,7 +60,7 @@ named data/raw/variants/{dataset}/{chrom}. Here, {dataset} is a
 wildcard that is expanded from the configuration file setting
 'dataset', and {chrom} is a wildcard that must match the entries in
 the configuration section 'chromosomes'. The variant file must end
-with '.vcf.gz' or '.bcf.'
+with '.vcf.gz' or '.bcf'.
 
 ### Snakemake profiles
 
@@ -124,10 +124,13 @@ Configurations are stored in an environment configuration file
     tswf config example envmodules
 
 """
+
 import logging
 
 import click
+
 from tswf.cli import pass_environment
+
 
 __shortname__ = __name__.split(".")[-1]
 

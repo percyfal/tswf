@@ -1,10 +1,12 @@
 import sys
 
 import pytest
+
 from tswf.config import Config
-from tswf.config import get_schema
 from tswf.config import Schema
 from tswf.config import SchemaFiles
+from tswf.config import get_schema
+
 
 params = ["object"] + [x for x in dir(SchemaFiles) if x.endswith("SCHEMA")]
 

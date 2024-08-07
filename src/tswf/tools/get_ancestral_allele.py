@@ -4,9 +4,12 @@ Infer ancestral alleles in VCF file based on majority vote in
 OUTGROUPs. The OUTGROUPs are sample ids in the VCF.
 
 """
+
 import logging
+import pathlib
 import re
 import sys
+from typing import TextIO
 
 import click
 import cyvcf2
@@ -28,20 +31,31 @@ from tqdm import tqdm
     help="number of alleles that need to agree on ancestral state",
 )
 @click.option("--logfile", type=str, help="logfile name")
-def main(vcf, outgroup, outfile, ploidy, min_alleles, logfile):
+def main(  # noqa: C901
+    vcf: pathlib.Path,
+    outgroup: tuple[str],
+    outfile: None | str,
+    ploidy: int,
+    min_alleles: int,
+    logfile: None | str,
+) -> None:
+    """Infer ancestral alleles in VCF based on majority vote in OUTGROUPs."""
     if outfile is None:
-        outfile = re.sub(r"(.vcf.gz)$", "_AA_vote\\1", vcf)
+        outfile = re.sub(r"(.vcf.gz)$", "_AA_vote\\1", str(vcf))
     n_vote = min_alleles
     if n_vote > len(outgroup) * ploidy:
-        logging.warning(
-            "min_alleles cannot be larger than total number of alleles in outgroups:"
-            f" setting to {len(outgroup) * ploidy}"
-        )
         n_vote = len(outgroup) * ploidy
+        logging.warning(
+            (
+                "min_alleles cannot be larger than total number of alleles in outgroups:"
+                " setting to %i"
+            ),
+            n_vote,
+        )
 
-    vcf = cyvcf2.VCF(vcf)
+    cyvcf = cyvcf2.VCF(vcf)
     # Make sure outgroups in samples
-    if not set(outgroup) <= set(vcf.samples):
+    if not set(outgroup) <= set(cyvcf.samples):
         logging.error("not all outgroup names found in vcf sample header")
         sys.exit(1)
 
@@ -49,16 +63,15 @@ def main(vcf, outgroup, outfile, ploidy, min_alleles, logfile):
     n_skip = 0
     n_change = 0
     outgroup_indices = [
-        i for i in range(len(vcf.samples)) if vcf.samples[i] in outgroup
+        i for i in range(len(cyvcf.samples)) if cyvcf.samples[i] in outgroup
     ]
     outext = re.compile(r"(.vcf|.vcf.gz|.bcf)$").search(outfile)
     if outext is None:
         logging.error("please use file extension .vcf, .vcf.gz, or .bcf")
         sys.exit(1)
-    outext = outext.group(1)
-    mode = {".vcf": "w", ".vcf.gz": "wz", ".bcf": "wb"}[outext]
+    mode = {".vcf": "w", ".vcf.gz": "wz", ".bcf": "wb"}[outext.group(1)]
 
-    vcf.add_info_to_header(
+    cyvcf.add_info_to_header(
         {
             "ID": "AA",
             "Number": 1,
@@ -66,8 +79,8 @@ def main(vcf, outgroup, outfile, ploidy, min_alleles, logfile):
             "Description": "Ancestral Allele",
         }
     )
-    vcfwriter = cyvcf2.cyvcf2.Writer(outfile, vcf, mode)
-    for variant in tqdm(vcf):
+    vcfwriter = cyvcf2.cyvcf2.Writer(outfile, cyvcf, mode)
+    for variant in tqdm(cyvcf):
         alleles = [variant.REF] + variant.ALT
         ancestral = variant.INFO.get("AA", variant.REF)
         ordered_alleles = [ancestral] + list(set(alleles) - {ancestral})
@@ -102,10 +115,9 @@ def main(vcf, outgroup, outfile, ploidy, min_alleles, logfile):
         n_skip = n_skip + 1
     vcfwriter.close()
 
+    fh: TextIO = sys.stdout
     if isinstance(logfile, str):
         fh = open(logfile, "w")
-    else:
-        fh = sys.stdout
 
     fh.write("get_ancestral_allel.py summary\n")
     fh.write("------------------------------\n")

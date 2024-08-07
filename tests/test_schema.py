@@ -1,8 +1,9 @@
 import jsonschema
 import pandas as pd
 import pytest
-from tswf.config import get_schema
+
 from tswf.config import Schema
+from tswf.config import get_schema
 from tswf.snakemake.config import PopulationData
 from tswf.snakemake.config import SampleData
 

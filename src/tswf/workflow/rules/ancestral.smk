@@ -1,4 +1,5 @@
 rule derive_ancestral_by_vote:
+    """Derive ancestral allele by majority vote."""
     output:
         vcf=__INTERIM__ / "variants/{dataset}/ancestral/{chrom}/{prefix}{bcf}",
     input:
@@ -13,7 +14,7 @@ rule derive_ancestral_by_vote:
         "logs/variants/{dataset}/ancestral/{chrom}/{prefix}{bcf}.log",
     threads: 1
     shell:
-        "tswf-get-ancestral-allele {input.vcf} {params.outgroup} --outfile {output.vcf} {params.options}"
+        "tswf-get-ancestral-allele {input.vcf} {params.outgroup} --outfile {output.vcf} {params.options} > {log} 2>&1"
 
 
 rule ancestralize_reference_sequence:
