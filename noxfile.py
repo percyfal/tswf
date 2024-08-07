@@ -195,8 +195,8 @@ def precommit(session: Session) -> None:
 @session(python=python_versions)
 def tests(session: Session) -> None:
     """Run the test suite."""
-    session.install(".")
     install_poetry_plugins_ci(session)
+    session.install(".")
     install_snakemake(session)
     session.install("coverage[toml]", "pytest", "pygments")
     session.run("ls", "src/tswf", external=True)
@@ -224,8 +224,8 @@ def coverage(session: Session) -> None:
 def mypy(session: Session) -> None:
     """Type-check using mypy."""
     args = session.posargs or ["src", "tests"]
-    session.install(".")
     install_poetry_plugins_ci(session)
+    session.install(".")
     session.install("mypy", "pytest")
     install_poetry_groups(session, "dev")
     session.run("mypy", *args)
