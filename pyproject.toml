@@ -5,6 +5,11 @@ build-backend = "poetry_dynamic_versioning.backend"
 [tool.poetry-dynamic-versioning]
 enable = true
 
+[tool.poetry-dynamic-versioning.substitution]
+folders = [
+    {path = "src"}
+]
+
 [tool.poetry-dynamic-versioning.files."src/tswf/_version.py"]
 persistent-substitution = true
 initial-content = """
@@ -39,6 +44,7 @@ license = "MIT"
 authors = ["Per Unneberg <per.unneberg@scilifelab.se>"]
 homepage = "https://github.com/percyfal/tswf"
 repository = "https://github.com/percyfal/tswf"
+packages = [{include = "tswf", from="src"}]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Console",
