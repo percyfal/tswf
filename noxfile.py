@@ -50,7 +50,9 @@ def pip_install_pulp(session, snakemake_version):
     cf https://github.com/snakemake/snakemake/issues/2607.
     """
     major, minor, patch = map(int, snakemake_version.split("."))
-    if (major >= 8) and (minor >= 1) and (patch >= 2):
+    if (major >= 8) and (minor >= 2):
+        session.install("pulp>=2.8")
+    elif (major == 8) and (minor == 1) and (patch >= 2):
         session.install("pulp>=2.8")
     else:
         session.install("pulp<2.8")
