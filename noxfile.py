@@ -73,6 +73,13 @@ def install_poetry_groups(session, *groups: str) -> None:
         session.install("-r", requirements.name)
 
 
+def install_poetry_plugins_ci(session: Session) -> None:
+    """Install poetry plugins for CI."""
+    if "CI" in os.environ:
+        session.run("pip", "install", "--user", "poetry-plugin-export")
+        session.run("pip", "install", "--user", "poetry-dynamic-versioning")
+
+
 def install_snakemake(session):
     """Install a version of snakemake compatible with Python version."""
     major, minor, _ = parse_sem(session.python)
@@ -189,6 +196,7 @@ def precommit(session: Session) -> None:
 def tests(session: Session) -> None:
     """Run the test suite."""
     session.install(".")
+    install_poetry_plugins_ci(session)
     install_snakemake(session)
     session.install("coverage[toml]", "pytest", "pygments")
     session.run("ls", "src/tswf", external=True)
@@ -217,6 +225,7 @@ def mypy(session: Session) -> None:
     """Type-check using mypy."""
     args = session.posargs or ["src", "tests"]
     session.install(".")
+    install_poetry_plugins_ci(session)
     session.install("mypy", "pytest")
     install_poetry_groups(session, "dev")
     session.run("mypy", *args)
