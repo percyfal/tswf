@@ -32,7 +32,7 @@ nearest neighbours and produce interactive plots with
 
 Easiest is to install with pip, possibly in a conda environment:
 
-    mamba create -n tswf python=3.10
+    mamba create -n tswf python=3.12
     python -m pip install git+https://github.com/percyfal/tswf
 
 ### Dependencies
@@ -40,7 +40,7 @@ Easiest is to install with pip, possibly in a conda environment:
 Until there is a conda package, you need to install the dependencies
 manually.
 
-    mamba install -c conda-forge -c bioconda -c default  snakemake-minimal bcftools bokeh=2.4.3 scipy matplotlib
+    mamba install -c conda-forge -c bioconda -c default  snakemake-minimal bcftools bokeh>=3.1 scipy matplotlib
 
 ## Quickstart
 
