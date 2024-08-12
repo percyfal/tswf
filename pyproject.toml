@@ -84,6 +84,8 @@ tsinfer = ">=0.4.0a1"
 scipy = "^1.14.0"
 matplotlib = "^3.9.0"
 bio2zarr = "^0.1.1"
+newick = "^1.9.0"
+selenium = "^4.23.1"
 
 [tool.poetry.group.dev.dependencies]
 Pygments = ">=2.10.0"

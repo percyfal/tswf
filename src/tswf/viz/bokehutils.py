@@ -349,9 +349,9 @@ class MatrixFigure(Figure):
         # FIXME: get rid of explicit key
         groups = sorted(list(set(self.source.data["sample_node_population"])))
         palette = dict(zip(groups, _get_palette(n=len(groups))))
-        self.source.data["colors"] = [
+        self._source.data["colors"] = list(
             palette[x] for x in self.source.data["sample_node_population"]
-        ]
+        )
 
         self._fig.add_tools(hover)
         self._fig.add_tools(hover_map)

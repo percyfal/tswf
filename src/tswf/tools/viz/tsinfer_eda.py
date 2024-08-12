@@ -12,6 +12,7 @@ they were generated.
 """
 
 import json
+import logging
 import os
 from collections import defaultdict
 
@@ -31,7 +32,7 @@ from tswf.cli import pass_environment
 
 def make_doc(docwidth):
     # Main width
-    doc = Document()
+    doc = Document(title="Tsinfer exploratory data analysis")
     # Add some general information
 
     d = Div(
@@ -171,7 +172,6 @@ def _gnnprop(infile, gnn, width=1800, height=400, visible=True, metadata=None):
 
 # Need to parallelize if ts inference
 def _fst(key, treefile, population_key, width=700, height=500, visible=True):
-    print("loading treefile for key ", key)
     ts = tskit.load(treefile)
     tsdata = bokehutils.TSData(ts)
     tsdata.fst()
@@ -282,7 +282,6 @@ def main(env, gnn, ts, gnn_ts, output_file, population_key):  # noqa: C901
     fst = {}
     fst_data = {}
     for k in list(gnn.keys()):
-        print("Analysing ", k)
         v = gnn[k]
         hm[k] = _heatmap(k, v)
         gnnprop[k], _ = _gnnprop(k, v)
@@ -312,17 +311,6 @@ def main(env, gnn, ts, gnn_ts, output_file, population_key):  # noqa: C901
     doc.add_root(row(fig_gnnprop_all))
     doc.add_root(Div(text="""<p><br></p>"""))
 
-    ##############################
-    # Save high-res versions of fst, gnnclust, map, and gnnprop
-    ##############################
-    try:
-        export_png(fig_hm_all, filename="gnnprop.png")
-        export_png(fig_fst_all, filename="gnnfst.png")
-        export_png(fig_worldmap, filename="worldmap.png")
-        export_png(fig_gnnprop_all, filename="gnnpropall.png")
-    except Exception as e:
-        print(e)
-
     # Single chromosomes
     doc.add_root(
         Div(
@@ -338,9 +326,30 @@ def main(env, gnn, ts, gnn_ts, output_file, population_key):  # noqa: C901
         doc.add_root(row(hm[k], fst[k]))
         doc.add_root(row(gnnprop[k]))
 
-        html = file_html(doc, CDN, "Tsinfer EDA")
+    html = file_html(doc, CDN, "Tsinfer EDA")
     if output_file is not None:
         with open(output_file, "w") as fh:  # noqa: F821
             fh.write(html)
     else:
         print(html)
+
+    from bokeh.plotting import figure
+
+    p = figure(width=400, height=400)
+
+    # add a scatter circle renderer with a size, color, and alpha
+    p.scatter([1, 2, 3, 4, 5], [6, 7, 2, 4, 5], size=20, color="navy", alpha=0.5)
+
+    ##############################
+    # Save high-res versions of fst, gnnclust, map, and gnnprop
+    ##############################
+
+    try:
+        for fig, fn in zip(
+            (fig_hm_all, fig_fst_all, fig_worldmap, fig_gnnprop_all),
+            ("gnnprop.png", "gnnfst.png", "worldmap.png", "gnnpropall.png"),
+        ):
+            export_png(fig, filename=fn)
+    except RuntimeError as e:
+        logging.error(e)
+        logging.error("Failed to generate png %s", fn)
