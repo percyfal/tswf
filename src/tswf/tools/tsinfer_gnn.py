@@ -6,8 +6,6 @@ file. Calculations can be based on either 'population' (default) or
 
 """
 
-import json
-
 import click
 import pandas as pd
 import tskit
@@ -33,8 +31,14 @@ def make_unique(x):
     "--mode", type=click.Choice(["individual", "population"]), default="individual"
 )
 @click.option("--output-file", type=click.Path())
+@click.option(
+    "--sample-id",
+    type=str,
+    default="variant_data_sample_id",
+    help="Sample ID variable name in individual metadata",
+)
 @pass_environment
-def main(env, ts, mode, output_file):
+def main(env, ts, mode, output_file, sample_id):
     if output_file is None:
         output_file = f"{ts}.gnn.csv"
 
@@ -52,7 +56,7 @@ def main(env, ts, mode, output_file):
     sample_nodes = [ts.node(n) for n in ts.samples()]
     sample_node_ids = [n.id for n in sample_nodes]
     sample_names = [
-        json.loads(ts.individual(n.individual).metadata)["SM"] for n in sample_nodes
+        ts.individual(n.individual).metadata[sample_id] for n in sample_nodes
     ]
 
     sample_names_unique = list(
@@ -61,14 +65,13 @@ def main(env, ts, mode, output_file):
     sample_node_pop_ids = [ts.population(n.population).id for n in sample_nodes]
 
     sample_node_pops = [
-        json.loads(ts.population(i).metadata.decode())["population"]
-        for i in sample_node_pop_ids
+        ts.population(i).metadata["population"] for i in sample_node_pop_ids
     ]
 
     if mode == "population":
-        columns = [json.loads(p.metadata)["population"] for p in ts.populations()]
+        columns = [p.metadata["population"] for p in ts.populations()]
     elif mode == "individual":
-        columns = [json.loads(ind.metadata)["SM"] for ind in ts.individuals()]
+        columns = [ind.metadata[sample_id] for ind in ts.individuals()]
 
     # Could possibly add metadata information in populations here
     gnn_table = pd.DataFrame(

@@ -592,7 +592,7 @@ class TSData:
     def _group_samples(self, by="population"):
         sample_group_set_map = collections.defaultdict(list)
         for population in self.ts.populations():
-            md = json.loads(population.metadata.decode())
+            md = population.metadata
             key = md[by]
             sample_group_set_map[key].extend(
                 list(self.ts.samples(population=population.id))

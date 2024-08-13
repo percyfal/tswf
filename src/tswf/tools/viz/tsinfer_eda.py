@@ -11,7 +11,6 @@ they were generated.
 
 """
 
-import json
 import logging
 import os
 from collections import defaultdict
@@ -188,13 +187,13 @@ def _fst(key, treefile, population_key, width=700, height=500, visible=True):
     )
 
 
-def _ts_individuals(ts):
+def _ts_individuals(ts, sample_id):
     """Get tree sequence metadata for individuals"""
     individuals = []
     for ind in list(ts.individuals()):
-        md = json.loads(ind.metadata.decode())
+        md = ind.metadata
         individuals.append(md)
-    return pd.DataFrame(individuals).set_index("SM")
+    return pd.DataFrame(individuals).set_index(sample_id)
 
 
 @click.command(help=__doc__)
@@ -223,8 +222,14 @@ def _ts_individuals(ts):
     default="sample_node_population",
     help="tree sequence metadata key that defines population name",
 )
+@click.option(
+    "--sample-id",
+    type=str,
+    default="variant_data_sample_id",
+    help="Sample ID variable name in individual metadata",
+)
 @pass_environment
-def main(env, gnn, ts, gnn_ts, output_file, population_key):  # noqa: C901
+def main(env, gnn, ts, gnn_ts, output_file, population_key, sample_id):  # noqa: C901
     docwidth = 1200
 
     assert len(gnn) == len(ts), "must supply same number of GNN csv and TS files"
@@ -259,7 +264,7 @@ def main(env, gnn, ts, gnn_ts, output_file, population_key):  # noqa: C901
         gnn[k] = df
         treefiles[k] = treefile
         if first:
-            individuals = _ts_individuals(tskit.load(treefile))
+            individuals = _ts_individuals(tskit.load(treefile), sample_id)
             first = False
 
     if "longitude" in individuals.columns and "latitude" in individuals.columns:
